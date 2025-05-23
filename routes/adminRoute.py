@@ -22,7 +22,31 @@ def adminRoute(app):
         users = conn.execute('SELECT * FROM users WHERE role != "admin"').fetchall()
         predictions = get_user_predictions()
         conn.close()
-        return render_template('admin/dashboard.html', users=users, predictions=predictions)
+
+        # Calculate statistics
+        total_users = len(users)
+        total_predictions = len(predictions)
+        
+        # Count high risk predictions
+        high_risk_predictions = 0
+        for pred in predictions:
+            result = json.loads(pred['prediction_result'])
+            if (result['decision_tree_risk'] == 'High' or 
+                result['random_forest_risk'] == 'High' or 
+                result['xgboost_risk'] == 'High'):
+                high_risk_predictions += 1
+
+        # Count today's predictions
+        today = datetime.now().date()
+        today_predictions = sum(1 for pred in predictions 
+                              if datetime.strptime(pred['created_at'], '%Y-%m-%d %H:%M:%S').date() == today)
+
+        return render_template('admin/dashboard.html',
+                             total_users=total_users,
+                             total_predictions=total_predictions,
+                             high_risk_predictions=high_risk_predictions,
+                             today_predictions=today_predictions,
+                             recent_predictions=predictions[:5])
 
     @app.route('/admin/users')
     @admin_required

@@ -9,7 +9,7 @@
                 <h1 class="h2">Dashboard</h1>
             </div>
 
-            <!-- Stats cards -->
+            <!-- Statistics Cards -->
             <div class="row">
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card border-left-primary shadow h-100 py-2">
@@ -18,7 +18,7 @@
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                         Total Users</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ users|length }}</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -35,7 +35,7 @@
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                         Total Predictions</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ predictions|length }}</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_predictions }}</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-chart-line fa-2x text-gray-300"></i>
@@ -44,9 +44,43 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        High Risk Predictions</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ high_risk_predictions }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Today's Predictions</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ today_predictions }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Recent predictions -->
+            <!-- Recent Predictions -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Recent Predictions</h6>
@@ -59,15 +93,103 @@
                                     <th>User</th>
                                     <th>Date</th>
                                     <th>Result</th>
+                                    <th>Details</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for pred in predictions[:5] %}
+                                {% for pred in recent_predictions %}
                                 <tr>
                                     <td>{{ pred.full_name }}</td>
                                     <td>{{ pred.created_at }}</td>
-                                    <td>{{ pred.prediction_result }}</td>
+                                    <td>
+                                        {% set result = pred.prediction_result|fromjson %}
+                                        <div class="d-flex flex-column">
+                                            <span class="badge bg-{{ 'success' if result.decision_tree_risk == 'Low' else 'warning' if result.decision_tree_risk == 'Medium' else 'danger' }}">
+                                                Decision Tree: {{ result.decision_tree }}% ({{ result.decision_tree_risk }})
+                                            </span>
+                                            <span class="badge bg-{{ 'success' if result.random_forest_risk == 'Low' else 'warning' if result.random_forest_risk == 'Medium' else 'danger' }}">
+                                                Random Forest: {{ result.random_forest }}% ({{ result.random_forest_risk }})
+                                            </span>
+                                            <span class="badge bg-{{ 'success' if result.xgboost_risk == 'Low' else 'warning' if result.xgboost_risk == 'Medium' else 'danger' }}">
+                                                XGBoost: {{ result.xgboost }}% ({{ result.xgboost_risk }})
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#dataModal{{ pred.id }}">
+                                            <i class="fas fa-eye"></i> View Details
+                                        </button>
+                                    </td>
                                 </tr>
+
+                                <!-- Data Modal -->
+                                <div class="modal fade" id="dataModal{{ pred.id }}" tabindex="-1" aria-labelledby="dataModalLabel{{ pred.id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="dataModalLabel{{ pred.id }}">Prediction Details</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                {% set data = pred.prediction_data|fromjson %}
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6 class="mb-3">Input Data</h6>
+                                                        <table class="table table-bordered">
+                                                            <tbody>
+                                                                {% for key, value in data.items() %}
+                                                                <tr>
+                                                                    <th>{{ key|replace('_', ' ')|title }}</th>
+                                                                    <td>{{ value }}</td>
+                                                                </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6 class="mb-3">Prediction Results</h6>
+                                                        <table class="table table-bordered">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <th>Model</th>
+                                                                    <th>Probability</th>
+                                                                    <th>Risk Level</th>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>Decision Tree</td>
+                                                                    <td>{{ result.decision_tree }}%</td>
+                                                                    <td>
+                                                                        <span class="badge bg-{{ 'success' if result.decision_tree_risk == 'Low' else 'warning' if result.decision_tree_risk == 'Medium' else 'danger' }}">
+                                                                            {{ result.decision_tree_risk }}
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>Random Forest</td>
+                                                                    <td>{{ result.random_forest }}%</td>
+                                                                    <td>
+                                                                        <span class="badge bg-{{ 'success' if result.random_forest_risk == 'Low' else 'warning' if result.random_forest_risk == 'Medium' else 'danger' }}">
+                                                                            {{ result.random_forest_risk }}
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>XGBoost</td>
+                                                                    <td>{{ result.xgboost }}%</td>
+                                                                    <td>
+                                                                        <span class="badge bg-{{ 'success' if result.xgboost_risk == 'Low' else 'warning' if result.xgboost_risk == 'Medium' else 'danger' }}">
+                                                                            {{ result.xgboost_risk }}
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -82,20 +204,21 @@
 {% block extra_css %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 <style>
+    .badge {
+        font-size: 0.8rem;
+        margin: 2px 0;
+    }
     .border-left-primary {
-        border-left: 0.25rem solid #4e73df !important;
+        border-left: 4px solid #4e73df !important;
     }
-
     .border-left-success {
-        border-left: 0.25rem solid #1cc88a !important;
+        border-left: 4px solid #1cc88a !important;
     }
-
-    .card {
-        transition: transform 0.2s;
+    .border-left-info {
+        border-left: 4px solid #36b9cc !important;
     }
-
-    .card:hover {
-        transform: translateY(-5px);
+    .border-left-warning {
+        border-left: 4px solid #f6c23e !important;
     }
 </style>
 {% endblock %} 

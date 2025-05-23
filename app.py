@@ -6,6 +6,8 @@ import sqlite3
 import os
 from functools import wraps
 from dotenv import load_dotenv
+import json
+from datetime import datetime
 load_dotenv()
 from db.database import init_db, get_db_connection
 from auth.middleware import login_required, admin_required
@@ -14,6 +16,12 @@ from routes.route import register_routes
 app = Flask(__name__)
 # app.secret_key = os.getenv("SECRET_KEY") 
 app.secret_key = "RAHASIA" 
+
+# Add fromjson filter
+@app.template_filter('fromjson')
+def fromjson_filter(value):
+    return json.loads(value)
+
 app.register_blueprint(predict_bp)
 
 register_routes(app)
