@@ -12,7 +12,8 @@ from auth.middleware import login_required, admin_required
 init_db()
 from routes.route import register_routes
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY") 
+# app.secret_key = os.getenv("SECRET_KEY") 
+app.secret_key = "RAHASIA" 
 app.register_blueprint(predict_bp)
 
 register_routes(app)
