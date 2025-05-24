@@ -87,12 +87,23 @@
       stSlope: document.getElementById('stSlope').value
     };
 
+    // Log the form data being sent
+    console.log('Sending form data:', formData);
+
     try {
       const response = await fetch('/predict', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token() }}'
+        },
         body: JSON.stringify(formData)
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'An error occurred during prediction');
+      }
 
       const data = await response.json();
       const results = document.querySelectorAll('.result-item');

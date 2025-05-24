@@ -14,6 +14,14 @@ from routes.authRoutes import authRoutes
 from routes.adminRoute import adminRoute
 from db.database import init_db, get_db_connection
 from auth.middleware import login_required, admin_required
+from routes.loadModel import loadModel
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 load_dotenv()
 
@@ -27,6 +35,9 @@ csrf = CSRFProtect(app)
 @app.template_filter('fromjson')
 def fromjson_filter(value):
     return json.loads(value)
+
+# Load ML models
+loadModel(app)
 
 app.register_blueprint(predict_bp)
 

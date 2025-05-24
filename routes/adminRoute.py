@@ -33,9 +33,12 @@ def adminRoute(app):
         high_risk_predictions = 0
         for pred in predictions:
             result = json.loads(pred['prediction_result'])
-            if (result['decision_tree_risk'] == 'High' or 
-                result['random_forest_risk'] == 'High' or 
-                result['xgboost_risk'] == 'High'):
+            # Count as high risk if any of the models predict high risk
+            if any(risk == 'Risiko tinggi terkena gagal jantung' for risk in [
+                result.get('decision_tree_risk', ''),
+                result.get('random_forest_risk', ''),
+                result.get('xgboost_risk', '')
+            ]):
                 high_risk_predictions += 1
 
         # Count today's predictions
