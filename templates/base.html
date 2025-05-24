@@ -30,7 +30,7 @@
                                 <a class="nav-link" href="{{ url_for('admin_users') }}">Users</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin_predictions') }}">Predictions</a>
+                                <a class="nav-link" href="{{ url_for('admin_predictions') }}">Daftar Prediksi</a>
                             </li>
                         {% endif %}
                         <li class="nav-item">
@@ -40,7 +40,7 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'history' %}active{% endif %}" href="{{ url_for('history') }}">
-                                <i class="fas fa-history"></i> History
+                                <i class="fas fa-history"></i> History {{ session.full_name }}
                             </a>
                         </li>
                         <li class="nav-item dropdown">

@@ -177,7 +177,7 @@
                                 <td>Decision Tree</td>
                                 <td>{{ result.decision_tree }}%</td>
                                 <td>
-                                    <span class="badge bg-{{ 'success' if result.decision_tree_risk == 'Low' else 'warning' if result.decision_tree_risk == 'Medium' else 'danger' }}">
+                                    <span class="badge {% if result.decision_tree_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif result.decision_tree_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
                                         {{ result.decision_tree_risk }}
                                     </span>
                                 </td>
@@ -186,7 +186,7 @@
                                 <td>Random Forest</td>
                                 <td>{{ result.random_forest }}%</td>
                                 <td>
-                                    <span class="badge bg-{{ 'success' if result.random_forest_risk == 'Low' else 'warning' if result.random_forest_risk == 'Medium' else 'danger' }}">
+                                    <span class="badge {% if result.random_forest_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif result.random_forest_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
                                         {{ result.random_forest_risk }}
                                     </span>
                                 </td>
@@ -195,7 +195,7 @@
                                 <td>XGBoost</td>
                                 <td>{{ result.xgboost }}%</td>
                                 <td>
-                                    <span class="badge bg-{{ 'success' if result.xgboost_risk == 'Low' else 'warning' if result.xgboost_risk == 'Medium' else 'danger' }}">
+                                    <span class="badge {% if result.xgboost_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif result.xgboost_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
                                         {{ result.xgboost_risk }}
                                     </span>
                                 </td>

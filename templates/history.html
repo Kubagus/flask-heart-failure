@@ -36,6 +36,7 @@
                             <table class="table table-bordered" id="historyTable" width="100%" cellspacing="0">
                                 <thead>
                                     <tr>
+                                        <th>No</th>
                                         <th>Date</th>
                                         <th>Risk Level</th>
                                         <th>Details</th>
@@ -44,9 +45,10 @@
                                 <tbody>
                                     {% for pred in predictions %}
                                     <tr>
+                                        <td></td>
                                         <td>{{ pred.created_at }}</td>
                                         <td>
-                                            <span class="badge {% if pred.risk_level == 'High' %}bg-danger{% else %}bg-success{% endif %}">
+                                            <span class="badge {% if pred.risk_level == 'High' %}bg-danger{% elif pred.risk_level == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
                                                 {{ pred.risk_level }}
                                             </span>
                                         </td>
@@ -72,7 +74,7 @@
                                                             <ul class="list-group">
                                                                 <li class="list-group-item">
                                                                     <strong>Decision Tree:</strong>
-                                                                    <span class="badge {% if pred.result.decision_tree_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% else %}bg-success{% endif %} float-end">
+                                                                    <span class="badge {% if pred.result.decision_tree_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.result.decision_tree_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %} float-end">
                                                                         {{ pred.result.decision_tree_risk }}
                                                                     </span>
                                                                     <br>
@@ -80,7 +82,7 @@
                                                                 </li>
                                                                 <li class="list-group-item">
                                                                     <strong>Random Forest:</strong>
-                                                                    <span class="badge {% if pred.result.random_forest_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% else %}bg-success{% endif %} float-end">
+                                                                    <span class="badge {% if pred.result.random_forest_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.result.random_forest_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %} float-end">
                                                                         {{ pred.result.random_forest_risk }}
                                                                     </span>
                                                                     <br>
@@ -88,7 +90,7 @@
                                                                 </li>
                                                                 <li class="list-group-item">
                                                                     <strong>XGBoost:</strong>
-                                                                    <span class="badge {% if pred.result.xgboost_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% else %}bg-success{% endif %} float-end">
+                                                                    <span class="badge {% if pred.result.xgboost_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.result.xgboost_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %} float-end">
                                                                         {{ pred.result.xgboost_risk }}
                                                                     </span>
                                                                     <br>
@@ -232,11 +234,20 @@
     $(document).ready(function() {
         // Initialize DataTable
         var table = $('#historyTable').DataTable({
-            order: [[0, 'desc']],
+            order: [[1, 'desc']], // Sort by date column
             pageLength: 10,
             language: {
                 search: "Search records:"
-            }
+            },
+            columnDefs: [{
+                targets: 0,
+                render: function(data, type, row, meta) {
+                    if (type === 'display') {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                    return data;
+                }
+            }]
         });
 
         // Handle print option radio buttons
@@ -289,9 +300,15 @@
                         th { background-color: #f5f5f5; }
                         .badge { padding: 5px 10px; border-radius: 4px; }
                         .bg-danger { background-color: #dc3545; color: white; }
+                        .bg-warning { background-color: #ffc107; color: black; }
                         .bg-success { background-color: #28a745; color: white; }
                         .header { text-align: center; margin-bottom: 20px; }
                         .date-range { margin-bottom: 20px; }
+                        .details-section { margin-top: 20px; }
+                        .details-section h4 { margin-bottom: 10px; }
+                        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                        .model-predictions, .input-data { margin-bottom: 20px; }
+                        .list-group-item { border: 1px solid #ddd; padding: 8px; margin-bottom: 5px; }
                     </style>
                 </head>
                 <body>
@@ -305,19 +322,54 @@
                     <table>
                         <thead>
                             <tr>
+                                <th>No</th>
                                 <th>Date</th>
                                 <th>Risk Level</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${tableData.map(row => `
+                            ${tableData.map((row, index) => `
                                 <tr>
-                                    <td>${row[0]}</td>
+                                    <td>${index + 1}</td>
                                     <td>${row[1]}</td>
+                                    <td>${row[2]}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
+                    <div class="details-section">
+                        <h4>Prediction Details</h4>
+                        ${tableData.map((row, index) => `
+                            <div class="prediction-details">
+                                <h5>Prediction #${index + 1} - ${row[1]}</h5>
+                                <div class="details-grid">
+                                    <div class="model-predictions">
+                                        <h6>Model Predictions:</h6>
+                                        <div class="list-group">
+                                            <div class="list-group-item">
+                                                <strong>Decision Tree:</strong>
+                                                <span class="badge ${row[2].includes('High') ? 'bg-danger' : row[2].includes('Medium') ? 'bg-warning' : 'bg-success'}">
+                                                    ${row[2]}
+                                                </span>
+                                            </div>
+                                            <div class="list-group-item">
+                                                <strong>Random Forest:</strong>
+                                                <span class="badge ${row[2].includes('High') ? 'bg-danger' : row[2].includes('Medium') ? 'bg-warning' : 'bg-success'}">
+                                                    ${row[2]}
+                                                </span>
+                                            </div>
+                                            <div class="list-group-item">
+                                                <strong>XGBoost:</strong>
+                                                <span class="badge ${row[2].includes('High') ? 'bg-danger' : row[2].includes('Medium') ? 'bg-warning' : 'bg-success'}">
+                                                    ${row[2]}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </body>
                 </html>
             `;
