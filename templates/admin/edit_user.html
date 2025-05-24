@@ -32,7 +32,7 @@
                             <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
                         </div>
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password (leave blank to keep current)</label>
+                            <label for="password" class="form-label">New Password (leave blank to keep current)</label>
                             <input type="password" class="form-control" id="password" name="password">
                         </div>
                         <div class="mb-3">
@@ -43,7 +43,7 @@
                             <label for="role" class="form-label">Role</label>
                             <select class="form-select" id="role" name="role">
                                 <option value="patient" {% if user.role == 'patient' %}selected{% endif %}>Patient</option>
-                                <option value="doctor" {% if user.role == 'doctor' %}selected{% endif %}>Doctor</option>
+                                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
                             </select>
                         </div>
                         <div class="d-flex justify-content-between">

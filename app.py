@@ -8,14 +8,18 @@ from functools import wraps
 from dotenv import load_dotenv
 import json
 from datetime import datetime
-load_dotenv()
+from flask_wtf.csrf import CSRFProtect
+from routes.main import main
+from routes.authRoutes import authRoutes
+from routes.adminRoute import adminRoute
 from db.database import init_db, get_db_connection
 from auth.middleware import login_required, admin_required
-init_db()
-from routes.route import register_routes
+
+load_dotenv()
+
 app = Flask(__name__)
-# app.secret_key = os.getenv("SECRET_KEY") 
 app.secret_key = "RAHASIA" 
+csrf = CSRFProtect(app)
 
 # Add fromjson filter
 @app.template_filter('fromjson')
@@ -24,7 +28,13 @@ def fromjson_filter(value):
 
 app.register_blueprint(predict_bp)
 
-register_routes(app)
+# Initialize routes
+main(app)
+authRoutes(app)
+adminRoute(app)
+
+# Initialize database
+init_db()
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", debug=True)

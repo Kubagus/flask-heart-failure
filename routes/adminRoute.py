@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session, flash, jsonify, send_file
+from flask import render_template, request, redirect, url_for, session, flash, jsonify, send_file, Blueprint
 import pandas as pd
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,6 +12,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 import io
+
+admin_bp = Blueprint('admin', __name__)
 
 def adminRoute(app):
 # Admin dashboard
@@ -216,3 +218,49 @@ def adminRoute(app):
                 download_name='predictions.pdf',
                 mimetype='application/pdf'
             )
+
+    @app.route('/admin/predictions/edit/<int:prediction_id>', methods=['POST'])
+    @admin_required
+    def edit_prediction(prediction_id):
+        conn = get_db_connection()
+        try:
+            prediction = conn.execute('SELECT * FROM predictions WHERE id = ?', (prediction_id,)).fetchone()
+            if not prediction:
+                flash('Prediction not found', 'danger')
+                return redirect(url_for('admin_predictions'))
+
+            result = request.form.get('result')
+            result_data = request.form.get('result_data')
+
+            conn.execute(
+                'UPDATE predictions SET result = ?, result_data = ? WHERE id = ?',
+                (result, result_data, prediction_id)
+            )
+            conn.commit()
+            flash('Prediction updated successfully', 'success')
+        except Exception as e:
+            flash(f'Error updating prediction: {str(e)}', 'danger')
+        finally:
+            conn.close()
+        return redirect(url_for('admin_predictions'))
+
+    @app.route('/admin/predictions/delete/<int:prediction_id>', methods=['POST'])
+    @admin_required
+    def delete_prediction(prediction_id):
+        conn = get_db_connection()
+        try:
+            # Check if prediction exists
+            prediction = conn.execute('SELECT * FROM prediction_history WHERE id = ?', (prediction_id,)).fetchone()
+            if not prediction:
+                flash('Prediction not found', 'danger')
+                return redirect(url_for('admin_predictions'))
+
+            # Delete the prediction
+            conn.execute('DELETE FROM prediction_history WHERE id = ?', (prediction_id,))
+            conn.commit()
+            flash('Prediction deleted successfully', 'success')
+        except Exception as e:
+            flash(f'Error deleting prediction: {str(e)}', 'danger')
+        finally:
+            conn.close()
+        return redirect(url_for('admin_predictions'))
