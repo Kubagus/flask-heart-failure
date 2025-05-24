@@ -38,7 +38,7 @@
                         <table class="table table-bordered" id="predictionsTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
+                                    <th>No</th>
                                     <th>User</th>
                                     <th>Date</th>
                                     <th>Risk Level</th>
@@ -48,7 +48,7 @@
                             <tbody>
                                 {% for pred in predictions %}
                                 <tr>
-                                    <td>{{ pred.id }}</td>
+                                    <td></td>
                                     <td>{{ pred.full_name }}</td>
                                     <td>{{ pred.created_at }}</td>
                                     <td>
@@ -165,12 +165,21 @@
 <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap5.min.js"></script>
 <script>
     $(document).ready(function() {
-        $('#predictionsTable').DataTable({
+        var table = $('#predictionsTable').DataTable({
             order: [[2, 'desc']], // Sort by date column
             pageLength: 10,
             language: {
                 search: "Search records:"
-            }
+            },
+            columnDefs: [{
+                targets: 0,
+                render: function(data, type, row, meta) {
+                    if (type === 'display') {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                    return data;
+                }
+            }]
         });
     });
 </script>
