@@ -9,6 +9,13 @@
         <main class="col-12 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">Prediction History</h1>
+                {% if predictions %}
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#printModal">
+                        <i class="fas fa-print"></i> Print History
+                    </button>
+                </div>
+                {% endif %}
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -130,6 +137,52 @@
         </main>
     </div>
 </div>
+
+<!-- Print Modal -->
+<div class="modal fade" id="printModal" tabindex="-1" aria-labelledby="printModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="printModalLabel">Print Prediction History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="printForm">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="printOption" id="printAll" value="all" checked>
+                            <label class="form-check-label" for="printAll">
+                                Print All History
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="printOption" id="printRange" value="range">
+                            <label class="form-check-label" for="printRange">
+                                Print Date Range
+                            </label>
+                        </div>
+                    </div>
+                    <div id="dateRangeInputs" class="mb-3" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate" name="endDate">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="printButton">Print</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_css %}
@@ -151,6 +204,23 @@
         width: 200px;
         margin-left: 10px;
     }
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .print-content, .print-content * {
+            visibility: visible;
+        }
+        .print-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -160,12 +230,102 @@
 <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap5.min.js"></script>
 <script>
     $(document).ready(function() {
-        $('#historyTable').DataTable({
+        // Initialize DataTable
+        var table = $('#historyTable').DataTable({
             order: [[0, 'desc']],
             pageLength: 10,
             language: {
                 search: "Search records:"
             }
+        });
+
+        // Handle print option radio buttons
+        $('input[name="printOption"]').change(function() {
+            if ($(this).val() === 'range') {
+                $('#dateRangeInputs').show();
+            } else {
+                $('#dateRangeInputs').hide();
+            }
+        });
+
+        // Handle print button click
+        $('#printButton').click(function() {
+            var printOption = $('input[name="printOption"]:checked').val();
+            var startDate = $('#startDate').val();
+            var endDate = $('#endDate').val();
+
+            // Create a new window for printing
+            var printWindow = window.open('', '_blank');
+            
+            // Get the table data based on the selected option
+            var tableData = [];
+            if (printOption === 'all') {
+                tableData = table.rows().data().toArray();
+            } else {
+                // Set end date to end of day
+                var endDateTime = new Date(endDate);
+                endDateTime.setHours(23, 59, 59, 999);
+                
+                // Set start date to beginning of day
+                var startDateTime = new Date(startDate);
+                startDateTime.setHours(0, 0, 0, 0);
+
+                // Filter data based on date range
+                tableData = table.rows().data().toArray().filter(function(row) {
+                    var rowDate = new Date(row[0]);
+                    return rowDate >= startDateTime && rowDate <= endDateTime;
+                });
+            }
+
+            // Create print content
+            var printContent = `
+                <html>
+                <head>
+                    <title>Prediction History</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f5f5f5; }
+                        .badge { padding: 5px 10px; border-radius: 4px; }
+                        .bg-danger { background-color: #dc3545; color: white; }
+                        .bg-success { background-color: #28a745; color: white; }
+                        .header { text-align: center; margin-bottom: 20px; }
+                        .date-range { margin-bottom: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h2>Prediction History</h2>
+                        ${printOption === 'range' ? 
+                            `<div class="date-range">
+                                <p>Date Range: ${startDate} to ${endDate}</p>
+                            </div>` : ''}
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Risk Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableData.map(row => `
+                                <tr>
+                                    <td>${row[0]}</td>
+                                    <td>${row[1]}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            // Write content to new window and print
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
         });
     });
 </script>
