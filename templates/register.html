@@ -8,7 +8,6 @@
 	</head>
 	<body>
 		<!-- templates/register.html -->
-		<!-- templates/register.html -->
 		{% extends "base.html" %} {% block title %}Register - Prediksi Gagal
 		Jantung{% endblock %} {% block content %}
 		<div class="container mt-5">
@@ -18,6 +17,7 @@
 						<div class="card-body p-4">
 							<h3 class="card-title text-center mb-4">Register</h3>
 							<form action="{{ url_for('register') }}" method="POST">
+								<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 								<div class="mb-3">
 									<label for="name" class="form-label">Full Name</label>
 									<input
