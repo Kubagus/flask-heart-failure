@@ -54,9 +54,10 @@ def adminRoute(app):
     @admin_required
     def admin_users():
         conn = get_db_connection()
-        users = conn.execute('SELECT * FROM users WHERE role != "admin"').fetchall()
+        admin_users = conn.execute('SELECT * FROM users WHERE role = "admin"').fetchall()
+        regular_users = conn.execute('SELECT * FROM users WHERE role != "admin"').fetchall()
         conn.close()
-        return render_template('admin/users.html', users=users)
+        return render_template('admin/users.html', admin_users=admin_users, regular_users=regular_users)
 
     @app.route('/admin/users/create', methods=['GET', 'POST'])
     @admin_required
