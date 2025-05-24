@@ -93,7 +93,7 @@
                                     <th>User</th>
                                     <th>Date</th>
                                     <th>Result</th>
-                                    <th>Details</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -103,17 +103,10 @@
                                     <td>{{ pred.created_at }}</td>
                                     <td>
                                         {% set result = pred.prediction_result|fromjson %}
-                                        <div class="d-flex flex-column">
-                                            <span class="badge bg-{{ 'success' if result.decision_tree_risk == 'Low' else 'warning' if result.decision_tree_risk == 'Medium' else 'danger' }}">
-                                                Decision Tree: {{ result.decision_tree }}% ({{ result.decision_tree_risk }})
-                                            </span>
-                                            <span class="badge bg-{{ 'success' if result.random_forest_risk == 'Low' else 'warning' if result.random_forest_risk == 'Medium' else 'danger' }}">
-                                                Random Forest: {{ result.random_forest }}% ({{ result.random_forest_risk }})
-                                            </span>
-                                            <span class="badge bg-{{ 'success' if result.xgboost_risk == 'Low' else 'warning' if result.xgboost_risk == 'Medium' else 'danger' }}">
-                                                XGBoost: {{ result.xgboost }}% ({{ result.xgboost_risk }})
-                                            </span>
-                                        </div>
+                                        <button type="button" class="btn btn-sm btn-{{ 'success' if result.decision_tree_risk == 'Low' else 'warning' if result.decision_tree_risk == 'Medium' else 'danger' }}" 
+                                                data-bs-toggle="modal" data-bs-target="#resultModal{{ pred.id }}">
+                                            <i class="fas fa-chart-bar"></i> View Results
+                                        </button>
                                     </td>
                                     <td>
                                         <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#dataModal{{ pred.id }}">
@@ -121,75 +114,6 @@
                                         </button>
                                     </td>
                                 </tr>
-
-                                <!-- Data Modal -->
-                                <div class="modal fade" id="dataModal{{ pred.id }}" tabindex="-1" aria-labelledby="dataModalLabel{{ pred.id }}" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="dataModalLabel{{ pred.id }}">Prediction Details</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                {% set data = pred.prediction_data|fromjson %}
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <h6 class="mb-3">Input Data</h6>
-                                                        <table class="table table-bordered">
-                                                            <tbody>
-                                                                {% for key, value in data.items() %}
-                                                                <tr>
-                                                                    <th>{{ key|replace('_', ' ')|title }}</th>
-                                                                    <td>{{ value }}</td>
-                                                                </tr>
-                                                                {% endfor %}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <h6 class="mb-3">Prediction Results</h6>
-                                                        <table class="table table-bordered">
-                                                            <tbody>
-                                                                <tr>
-                                                                    <th>Model</th>
-                                                                    <th>Probability</th>
-                                                                    <th>Risk Level</th>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>Decision Tree</td>
-                                                                    <td>{{ result.decision_tree }}%</td>
-                                                                    <td>
-                                                                        <span class="badge bg-{{ 'success' if result.decision_tree_risk == 'Low' else 'warning' if result.decision_tree_risk == 'Medium' else 'danger' }}">
-                                                                            {{ result.decision_tree_risk }}
-                                                                        </span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>Random Forest</td>
-                                                                    <td>{{ result.random_forest }}%</td>
-                                                                    <td>
-                                                                        <span class="badge bg-{{ 'success' if result.random_forest_risk == 'Low' else 'warning' if result.random_forest_risk == 'Medium' else 'danger' }}">
-                                                                            {{ result.random_forest_risk }}
-                                                                        </span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>XGBoost</td>
-                                                                    <td>{{ result.xgboost }}%</td>
-                                                                    <td>
-                                                                        <span class="badge bg-{{ 'success' if result.xgboost_risk == 'Low' else 'warning' if result.xgboost_risk == 'Medium' else 'danger' }}">
-                                                                            {{ result.xgboost_risk }}
-                                                                        </span>
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -199,6 +123,91 @@
         </main>
     </div>
 </div>
+
+<!-- Modals -->
+{% for pred in recent_predictions %}
+<!-- Input Data Modal -->
+<div class="modal fade" id="dataModal{{ pred.id }}" tabindex="-1" aria-labelledby="dataModalLabel{{ pred.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dataModalLabel{{ pred.id }}">Input Data Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% set data = pred.prediction_data|fromjson %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tbody>
+                            {% for key, value in data.items() %}
+                            <tr>
+                                <th>{{ key|replace('_', ' ')|title }}</th>
+                                <td>{{ value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Modal -->
+<div class="modal fade" id="resultModal{{ pred.id }}" tabindex="-1" aria-labelledby="resultModalLabel{{ pred.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resultModalLabel{{ pred.id }}">Prediction Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% set result = pred.prediction_result|fromjson %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Probability</th>
+                                <th>Risk Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Decision Tree</td>
+                                <td>{{ result.decision_tree }}%</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if result.decision_tree_risk == 'Low' else 'warning' if result.decision_tree_risk == 'Medium' else 'danger' }}">
+                                        {{ result.decision_tree_risk }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Random Forest</td>
+                                <td>{{ result.random_forest }}%</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if result.random_forest_risk == 'Low' else 'warning' if result.random_forest_risk == 'Medium' else 'danger' }}">
+                                        {{ result.random_forest_risk }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>XGBoost</td>
+                                <td>{{ result.xgboost }}%</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if result.xgboost_risk == 'Low' else 'warning' if result.xgboost_risk == 'Medium' else 'danger' }}">
+                                        {{ result.xgboost_risk }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 {% endblock %}
 
 {% block extra_css %}
@@ -219,6 +228,9 @@
     }
     .border-left-warning {
         border-left: 4px solid #f6c23e !important;
+    }
+    .btn-sm {
+        margin: 2px;
     }
 </style>
 {% endblock %} 
