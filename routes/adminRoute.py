@@ -138,7 +138,43 @@ def adminRoute(app):
     @admin_required
     def admin_predictions():
         predictions = get_user_predictions()
-        return render_template('admin/predictions.html', predictions=predictions)
+        
+        # Process predictions to make them more readable
+        processed_predictions = []
+        for pred in predictions:
+            prediction_data = json.loads(pred['prediction_data'])
+            prediction_result = json.loads(pred['prediction_result'])
+            
+            processed_pred = {
+                'id': pred['id'],
+                'full_name': pred['full_name'],
+                'created_at': pred['created_at'],
+                'risk_level': 'High' if any(risk == 'Risiko tinggi terkena gagal jantung' for risk in [
+                    prediction_result.get('decision_tree_risk', ''),
+                    prediction_result.get('random_forest_risk', ''),
+                    prediction_result.get('xgboost_risk', '')
+                ]) else 'Low',
+                'decision_tree': prediction_result.get('decision_tree', 0),
+                'decision_tree_risk': prediction_result.get('decision_tree_risk', ''),
+                'random_forest': prediction_result.get('random_forest', 0),
+                'random_forest_risk': prediction_result.get('random_forest_risk', ''),
+                'xgboost': prediction_result.get('xgboost', 0),
+                'xgboost_risk': prediction_result.get('xgboost_risk', ''),
+                'age': prediction_data.get('age', ''),
+                'sex': prediction_data.get('sex', ''),
+                'chestpaintype': prediction_data.get('chestpaintype', ''),
+                'restingbp': prediction_data.get('restingbp', ''),
+                'cholesterol': prediction_data.get('cholesterol', ''),
+                'fastingbs': prediction_data.get('fastingbs', ''),
+                'restingecg': prediction_data.get('restingecg', ''),
+                'maxhr': prediction_data.get('maxhr', ''),
+                'exerciseangina': prediction_data.get('exerciseangina', ''),
+                'oldpeak': prediction_data.get('oldpeak', ''),
+                'stslope': prediction_data.get('stslope', '')
+            }
+            processed_predictions.append(processed_pred)
+        
+        return render_template('admin/predictions.html', predictions=processed_predictions)
 
     @app.route('/admin/predictions/export/<format>')
     @admin_required
