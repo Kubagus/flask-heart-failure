@@ -18,7 +18,9 @@ from auth.middleware import login_required, admin_required
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "RAHASIA" 
+app.config['SECRET_KEY'] = "RAHASIA"  # Ganti dengan secret key yang aman
+app.config['WTF_CSRF_ENABLED'] = True
+app.config['WTF_CSRF_SECRET_KEY'] = "RAHASIA"  # Ganti dengan secret key yang aman
 csrf = CSRFProtect(app)
 
 # Add fromjson filter
