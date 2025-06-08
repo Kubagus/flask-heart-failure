@@ -28,7 +28,7 @@ def predict():
             logging.error(error_msg)
             return jsonify({'error': error_msg}), 400
 
-        data = request.json
+        data = request.get_json()
         if not data:
             error_msg = "No data provided"
             logging.error(error_msg)
@@ -51,26 +51,6 @@ def predict():
             logging.error(error_msg)
             return jsonify({'error': error_msg}), 400
 
-        # Validate field values
-        try:
-            input_data = pd.DataFrame([{
-                'Age': float(data['age']),
-                'Sex': data['sex'],
-                'ChestPainType': data['chestpaintype'],
-                'RestingBP': float(data['restingbp']),
-                'Cholesterol': float(data['cholesterol']),
-                'FastingBS': int(data['fastingbs']),
-                'RestingECG': data['restingecg'],
-                'MaxHR': float(data['maxhr']),
-                'ExerciseAngina': data['exerciseangina'],
-                'Oldpeak': float(data['oldpeak']),
-                'ST_Slope': data['stslope']
-            }])
-        except ValueError as e:
-            error_msg = f"Invalid numeric value: {str(e)}"
-            logging.error(error_msg)
-            return jsonify({'error': error_msg}), 400
-
         # Validate categorical values
         valid_values = {
             'sex': ['M', 'F'],
@@ -87,16 +67,29 @@ def predict():
                 logging.error(error_msg)
                 return jsonify({'error': error_msg}), 400
 
-        mappings = {
-            'Sex': {'M': 1, 'F': 0},
-            'ChestPainType': {'TA': 3, 'ATA': 1, 'NAP': 2, 'ASY': 0},
-            'RestingECG': {'Normal': 1, 'ST': 2, 'LVH': 0},
-            'ExerciseAngina': {'N': 0, 'Y': 1},
-            'ST_Slope': {'Up': 2, 'Flat': 1, 'Down': 0}
+        # Convert categorical values to numeric
+        categorical_mappings = {
+            'sex': {'M': 1, 'F': 0},
+            'chestpaintype': {'TA': 3, 'ATA': 1, 'NAP': 2, 'ASY': 0},
+            'restingecg': {'Normal': 1, 'ST': 2, 'LVH': 0},
+            'exerciseangina': {'N': 0, 'Y': 1},
+            'stslope': {'Up': 2, 'Flat': 1, 'Down': 0}
         }
 
-        for col, map_dict in mappings.items():
-            input_data[col] = input_data[col].map(map_dict)
+        # Create input data with numeric values
+        input_data = pd.DataFrame([{
+            'Age': float(data['age']),
+            'Sex': categorical_mappings['sex'][data['sex']],
+            'ChestPainType': categorical_mappings['chestpaintype'][data['chestpaintype']],
+            'RestingBP': float(data['restingbp']),
+            'Cholesterol': float(data['cholesterol']),
+            'FastingBS': int(data['fastingbs']),
+            'RestingECG': categorical_mappings['restingecg'][data['restingecg']],
+            'MaxHR': float(data['maxhr']),
+            'ExerciseAngina': categorical_mappings['exerciseangina'][data['exerciseangina']],
+            'Oldpeak': float(data['oldpeak']),
+            'ST_Slope': categorical_mappings['stslope'][data['stslope']]
+        }])
 
         # Check if models are loaded
         if not all(key in current_app.config for key in ['SCALER', 'DT_MODEL', 'RF_MODEL', 'XGB_MODEL']):

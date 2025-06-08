@@ -6,8 +6,22 @@
   <title>Heart Failure Prediction</title>
 </head>
 <body>
-{% extends "base.html" %} {% block title %}Beranda - Prediksi Gagal
-		Jantung{% endblock %} {% block content %}
+{% extends "admin/base.html" %}
+{% block title %}Prediksi - Prediksi Gagal Jantung{% endblock %}
+
+{% block extra_css %}
+<style>
+    .navbar-custom .nav-link.active, .navbar-custom .nav-link:focus, .navbar-custom .nav-link:hover {
+        background: #20b2aa !important; /* teal */
+        color: #fff !important;
+        font-weight: bold;
+        border-radius: 5px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
 
 
 <div class="container my-5">
@@ -21,18 +35,18 @@
             <div class="col-md-6">
               <div class="mb-3"><label class="form-label">Age</label><input type="number" class="form-control" id="age" required /></div>
               <div class="mb-3"><label class="form-label">Sex</label><select class="form-select" id="sex"><option value="M">Male</option><option value="F">Female</option></select></div>
-              <div class="mb-3"><label class="form-label">Chest Pain Type</label><select class="form-select" id="chestPainType"><option value="TA">Typical Angina</option><option value="ATA">Atypical Angina</option><option value="NAP">Non-Anginal Pain</option><option value="ASY">Asymptomatic</option></select></div>
-              <div class="mb-3"><label class="form-label">Resting BP</label><input type="number" class="form-control" id="restingBP" required /></div>
+              <div class="mb-3"><label class="form-label">Chest Pain Type</label><select class="form-select" id="chestpaintype"><option value="TA">Typical Angina</option><option value="ATA">Atypical Angina</option><option value="NAP">Non-Anginal Pain</option><option value="ASY">Asymptomatic</option></select></div>
+              <div class="mb-3"><label class="form-label">Resting BP</label><input type="number" class="form-control" id="restingbp" required /></div>
               <div class="mb-3"><label class="form-label">Cholesterol</label><input type="number" class="form-control" id="cholesterol" required /></div>
-              <div class="mb-3"><label class="form-label">Fasting Blood Sugar</label><select class="form-select" id="fastingBS"><option value="0">No</option><option value="1">Yes</option></select></div>
+              <div class="mb-3"><label class="form-label">Fasting Blood Sugar</label><select class="form-select" id="fastingbs"><option value="0">No</option><option value="1">Yes</option></select></div>
             </div>
 
             <div class="col-md-6">
-              <div class="mb-3"><label class="form-label">Resting ECG</label><select class="form-select" id="restingECG"><option value="Normal">Normal</option><option value="ST">ST-T Abnormality</option><option value="LVH">Left Ventricular Hypertrophy</option></select></div>
-              <div class="mb-3"><label class="form-label">Max Heart Rate</label><input type="number" class="form-control" id="maxHR" required /></div>
-              <div class="mb-3"><label class="form-label">Exercise Angina</label><select class="form-select" id="exerciseAngina"><option value="N">No</option><option value="Y">Yes</option></select></div>
+              <div class="mb-3"><label class="form-label">Resting ECG</label><select class="form-select" id="restingecg"><option value="Normal">Normal</option><option value="ST">ST-T Abnormality</option><option value="LVH">Left Ventricular Hypertrophy</option></select></div>
+              <div class="mb-3"><label class="form-label">Max Heart Rate</label><input type="number" class="form-control" id="maxhr" required /></div>
+              <div class="mb-3"><label class="form-label">Exercise Angina</label><select class="form-select" id="exerciseangina"><option value="N">No</option><option value="Y">Yes</option></select></div>
               <div class="mb-3"><label class="form-label">Oldpeak</label><input type="number" step="0.1" class="form-control" id="oldpeak" required /></div>
-              <div class="mb-3"><label class="form-label">ST Slope</label><select class="form-select" id="stSlope"><option value="Up">Up</option><option value="Flat">Flat</option><option value="Down">Down</option></select></div>
+              <div class="mb-3"><label class="form-label">ST Slope</label><select class="form-select" id="stslope"><option value="Up">Up</option><option value="Flat">Flat</option><option value="Down">Down</option></select></div>
             </div>
           </div>
           <button type="submit" class="btn btn-primary w-100 mt-3">Predict</button>
@@ -76,15 +90,15 @@
     const formData = {
       age: document.getElementById('age').value,
       sex: document.getElementById('sex').value,
-      chestPainType: document.getElementById('chestPainType').value,
-      restingBP: document.getElementById('restingBP').value,
+      chestpaintype: document.getElementById('chestpaintype').value,
+      restingbp: document.getElementById('restingbp').value,
       cholesterol: document.getElementById('cholesterol').value,
-      fastingBS: document.getElementById('fastingBS').value,
-      restingECG: document.getElementById('restingECG').value,
-      maxHR: document.getElementById('maxHR').value,
-      exerciseAngina: document.getElementById('exerciseAngina').value,
+      fastingbs: document.getElementById('fastingbs').value,
+      restingecg: document.getElementById('restingecg').value,
+      maxhr: document.getElementById('maxhr').value,
+      exerciseangina: document.getElementById('exerciseangina').value,
       oldpeak: document.getElementById('oldpeak').value,
-      stSlope: document.getElementById('stSlope').value
+      stslope: document.getElementById('stslope').value
     };
 
     // Log the form data being sent

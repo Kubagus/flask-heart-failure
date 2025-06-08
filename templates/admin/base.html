@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar-custom {
+            background: linear-gradient(90deg, #ff4e50 0%, #f96d00 100%);
+            color: #fff;
+        }
+        .navbar-custom .navbar-brand, .navbar-custom .nav-link, .navbar-custom .dropdown-toggle {
+            color: #fff !important;
+            font-weight: 500;
+        }
+        .navbar-custom .nav-link.active, .navbar-custom .nav-link:focus, .navbar-custom .nav-link:hover {
+            background: #20b2aa !important; /* teal */
+            color: #fff !important;
+            font-weight: bold;
+            border-radius: 5px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+        .navbar-custom .nav-link {
+            margin-right: 20px;
+            transition: color 0.2s, font-weight 0.2s;
+        }
+        .navbar-custom .navbar-brand {
+            font-size: 1.3rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        .navbar-custom .dropdown-menu {
+            background: #fff;
+            color: #333;
+        }
+        .navbar-custom .dropdown-item.active, .navbar-custom .dropdown-item:active {
+            background: #f96d00;
+            color: #fff;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Top Navbar Only -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('admin_dashboard') }}">
+                <i class="fas fa-heart-pulse me-2"></i> Aplikasi Prediksi Gagal Jantung
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if session.role == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_users' %}active{% endif %}" href="{{ url_for('admin_users') }}">Users</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_predictions' %}active{% endif %}" href="{{ url_for('admin_predictions') }}">Daftar Prediksi</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'prediksi' %}active{% endif %}" href="{{ url_for('prediksi') }}"><i class="fas fa-heartbeat"></i> Prediksi</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'history' %}active{% endif %}" href="{{ url_for('history') }}"><i class="fas fa-history"></i> History {{ session.full_name }}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container-fluid py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

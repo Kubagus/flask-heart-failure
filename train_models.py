@@ -30,8 +30,6 @@ data['RestingBP'] = data['RestingBP'].apply(lambda x: np.nan if x > 140 or x < 4
 data['Cholesterol'] = data['Cholesterol'].replace(0, np.nan)
 data['RestingBP'].fillna(data['RestingBP'].median(), inplace=True)
 data['Cholesterol'].fillna(data['Cholesterol'].median(), inplace=True)
-data['Oldpeak'] = data['Oldpeak'].apply(lambda x: x if x > 0 else np.nan)
-data['Oldpeak'].fillna(data['Oldpeak'].median(), inplace=True)
 
 # Pisahkan fitur dan label
 X = data.drop('HeartDisease', axis=1)
@@ -46,7 +44,7 @@ X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X.columns)
 X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X.columns)
 
 # Terapkan SMOTEENN
-sm = SMOTEENN(random_state=42)
+sm = SMOTEENN(sampling_strategy=0.96, random_state=42)
 X_train_res, y_train_res = sm.fit_resample(X_train_scaled, y_train)
 
 # Fungsi evaluasi dan mengembalikan model

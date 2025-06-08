@@ -1,20 +1,53 @@
+import os
+import joblib
+import logging
+import numpy as np
+
 def loadModel(app):
-    # Load models (your existing code)
     def load_models():
-        import os
-        import joblib
-        if not os.path.exists('models/models_and_scaler_smoteenn.pkl'):
-            raise FileNotFoundError("Models not found. Please run train_models.py first.")
+        model_path = 'models/models_and_scaler_smoteenn.pkl'
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Models not found at {model_path}. Please run train_models.py first.")
         
-        models = joblib.load('models/models_and_scaler_smoteenn.pkl')
-        return models['dt_model'], models['rf_model'], models['xgb_model'], models['scaler']
+        try:
+            models = joblib.load(model_path)
+            required_keys = ['dt_model', 'rf_model', 'xgb_model', 'scaler']
+            missing_keys = [key for key in required_keys if key not in models]
+            
+            if missing_keys:
+                raise KeyError(f"Missing required models in file: {', '.join(missing_keys)}")
+            
+            return models['dt_model'], models['rf_model'], models['xgb_model'], models['scaler']
+        except Exception as e:
+            raise Exception(f"Error loading models: {str(e)}")
 
     try:
+        logging.info("Loading ML models...")
         dt_model, rf_model, xgb_model, scaler = load_models()
+        
+        # Validate models
+        test_data = np.array([[40, 1, 0, 120, 200, 0, 1, 150, 0, 0.0, 1]])  # Sample data
+        test_data_scaled = scaler.transform(test_data)
+        
+        # Test each model
+        dt_pred = dt_model.predict_proba(test_data_scaled)
+        rf_pred = rf_model.predict_proba(test_data_scaled)
+        xgb_pred = xgb_model.predict_proba(test_data_scaled)
+        
+        if not all(isinstance(pred, np.ndarray) for pred in [dt_pred, rf_pred, xgb_pred]):
+            raise ValueError("One or more models failed to make predictions")
+        
+        # Store models in app config
         app.config['DT_MODEL'] = dt_model
         app.config['RF_MODEL'] = rf_model
         app.config['XGB_MODEL'] = xgb_model
         app.config['SCALER'] = scaler
+        
+        logging.info("✅ ML models loaded successfully")
+        
     except FileNotFoundError as e:
-        print(f"❌ Error: {e}")
-        exit(1)
+        logging.error(f"❌ Error: {e}")
+        raise
+    except Exception as e:
+        logging.error(f"❌ Error loading models: {str(e)}")
+        raise

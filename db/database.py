@@ -20,13 +20,37 @@ def init_db():
     ''')
 
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS prediction_history (
+        CREATE TABLE IF NOT EXISTS predictions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
-            prediction_data TEXT NOT NULL,
-            prediction_result TEXT NOT NULL,
+            age INTEGER NOT NULL,
+            sex TEXT NOT NULL,
+            chestpaintype TEXT NOT NULL,
+            restingbp INTEGER NOT NULL,
+            cholesterol INTEGER NOT NULL,
+            fastingbs INTEGER NOT NULL,
+            restingecg TEXT NOT NULL,
+            maxhr INTEGER NOT NULL,
+            exerciseangina TEXT NOT NULL,
+            oldpeak REAL NOT NULL,
+            stslope TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS risk_by_algorithm (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            prediction_id INTEGER NOT NULL,
+            decision_tree REAL NOT NULL,
+            decision_tree_risk TEXT NOT NULL,
+            random_forest REAL NOT NULL,
+            random_forest_risk TEXT NOT NULL,
+            xgboost REAL NOT NULL,
+            xgboost_risk TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (prediction_id) REFERENCES predictions (id)
         )
     ''')
 
@@ -49,9 +73,44 @@ def get_db_connection():
 def save_prediction(user_id, prediction_data, prediction_result):
     conn = get_db_connection()
     try:
+        # Insert into predictions table
+        cursor = conn.execute(
+            """INSERT INTO predictions (
+                user_id, age, sex, chestpaintype, restingbp, cholesterol,
+                fastingbs, restingecg, maxhr, exerciseangina, oldpeak, stslope
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                user_id,
+                prediction_data['age'],
+                prediction_data['sex'],
+                prediction_data['chestpaintype'],
+                prediction_data['restingbp'],
+                prediction_data['cholesterol'],
+                prediction_data['fastingbs'],
+                prediction_data['restingecg'],
+                prediction_data['maxhr'],
+                prediction_data['exerciseangina'],
+                prediction_data['oldpeak'],
+                prediction_data['stslope']
+            )
+        )
+        prediction_id = cursor.lastrowid
+
+        # Insert into risk_by_algorithm table
         conn.execute(
-            "INSERT INTO prediction_history (user_id, prediction_data, prediction_result) VALUES (?, ?, ?)",
-            (user_id, json.dumps(prediction_data), json.dumps(prediction_result))
+            """INSERT INTO risk_by_algorithm (
+                prediction_id, decision_tree, decision_tree_risk,
+                random_forest, random_forest_risk, xgboost, xgboost_risk
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                prediction_id,
+                prediction_result['decision_tree'],
+                prediction_result['decision_tree_risk'],
+                prediction_result['random_forest'],
+                prediction_result['random_forest_risk'],
+                prediction_result['xgboost'],
+                prediction_result['xgboost_risk']
+            )
         )
         conn.commit()
         return True
@@ -66,12 +125,21 @@ def get_user_predictions(user_id=None):
     try:
         if user_id:
             predictions = conn.execute(
-                "SELECT ph.*, u.username, u.full_name FROM prediction_history ph JOIN users u ON ph.user_id = u.id WHERE ph.user_id = ? ORDER BY ph.created_at DESC",
+                """SELECT p.*, u.username, u.full_name, r.* 
+                FROM predictions p 
+                JOIN users u ON p.user_id = u.id 
+                JOIN risk_by_algorithm r ON p.id = r.prediction_id 
+                WHERE p.user_id = ? 
+                ORDER BY p.created_at DESC""",
                 (user_id,)
             ).fetchall()
         else:
             predictions = conn.execute(
-                "SELECT ph.*, u.username, u.full_name FROM prediction_history ph JOIN users u ON ph.user_id = u.id ORDER BY ph.created_at DESC"
+                """SELECT p.*, u.username, u.full_name, r.* 
+                FROM predictions p 
+                JOIN users u ON p.user_id = u.id 
+                JOIN risk_by_algorithm r ON p.id = r.prediction_id 
+                ORDER BY p.created_at DESC"""
             ).fetchall()
         return predictions
     finally:

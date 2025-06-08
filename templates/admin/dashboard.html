@@ -1,4 +1,6 @@
-{% extends "base.html" %}
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard - Admin Panel{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -102,8 +104,7 @@
                                     <td>{{ pred.full_name }}</td>
                                     <td>{{ pred.created_at }}</td>
                                     <td>
-                                        {% set result = pred.prediction_result|fromjson %}
-                                        <button type="button" class="btn btn-sm btn-{{ 'success' if result.decision_tree_risk == 'Low' else 'warning' if result.decision_tree_risk == 'Medium' else 'danger' }}" 
+                                        <button type="button" class="btn btn-sm btn-{{ 'success' if pred.decision_tree_risk == 'Low' else 'warning' if pred.decision_tree_risk == 'Medium' else 'danger' }}" 
                                                 data-bs-toggle="modal" data-bs-target="#resultModal{{ pred.id }}">
                                             <i class="fas fa-chart-bar"></i> View Results
                                         </button>
@@ -135,16 +136,53 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                {% set data = pred.prediction_data|fromjson %}
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <tbody>
-                            {% for key, value in data.items() %}
                             <tr>
-                                <th>{{ key|replace('_', ' ')|title }}</th>
-                                <td>{{ value }}</td>
+                                <th>Age</th>
+                                <td>{{ pred.age }}</td>
                             </tr>
-                            {% endfor %}
+                            <tr>
+                                <th>Sex</th>
+                                <td>{{ pred.sex }}</td>
+                            </tr>
+                            <tr>
+                                <th>Chest Pain Type</th>
+                                <td>{{ pred.chestpaintype }}</td>
+                            </tr>
+                            <tr>
+                                <th>Resting BP</th>
+                                <td>{{ pred.restingbp }}</td>
+                            </tr>
+                            <tr>
+                                <th>Cholesterol</th>
+                                <td>{{ pred.cholesterol }}</td>
+                            </tr>
+                            <tr>
+                                <th>Fasting BS</th>
+                                <td>{{ pred.fastingbs }}</td>
+                            </tr>
+                            <tr>
+                                <th>Resting ECG</th>
+                                <td>{{ pred.restingecg }}</td>
+                            </tr>
+                            <tr>
+                                <th>Max HR</th>
+                                <td>{{ pred.maxhr }}</td>
+                            </tr>
+                            <tr>
+                                <th>Exercise Angina</th>
+                                <td>{{ pred.exerciseangina }}</td>
+                            </tr>
+                            <tr>
+                                <th>Old Peak</th>
+                                <td>{{ pred.oldpeak }}</td>
+                            </tr>
+                            <tr>
+                                <th>ST Slope</th>
+                                <td>{{ pred.stslope }}</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -162,7 +200,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                {% set result = pred.prediction_result|fromjson %}
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
@@ -175,28 +212,28 @@
                         <tbody>
                             <tr>
                                 <td>Decision Tree</td>
-                                <td>{{ result.decision_tree }}%</td>
+                                <td>{{ pred.decision_tree }}%</td>
                                 <td>
-                                    <span class="badge {% if result.decision_tree_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif result.decision_tree_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
-                                        {{ result.decision_tree_risk }}
+                                    <span class="badge {% if pred.decision_tree_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.decision_tree_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
+                                        {{ pred.decision_tree_risk }}
                                     </span>
                                 </td>
                             </tr>
                             <tr>
                                 <td>Random Forest</td>
-                                <td>{{ result.random_forest }}%</td>
+                                <td>{{ pred.random_forest }}%</td>
                                 <td>
-                                    <span class="badge {% if result.random_forest_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif result.random_forest_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
-                                        {{ result.random_forest_risk }}
+                                    <span class="badge {% if pred.random_forest_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.random_forest_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
+                                        {{ pred.random_forest_risk }}
                                     </span>
                                 </td>
                             </tr>
                             <tr>
                                 <td>XGBoost</td>
-                                <td>{{ result.xgboost }}%</td>
+                                <td>{{ pred.xgboost }}%</td>
                                 <td>
-                                    <span class="badge {% if result.xgboost_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif result.xgboost_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
-                                        {{ result.xgboost_risk }}
+                                    <span class="badge {% if pred.xgboost_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.xgboost_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
+                                        {{ pred.xgboost_risk }}
                                     </span>
                                 </td>
                             </tr>

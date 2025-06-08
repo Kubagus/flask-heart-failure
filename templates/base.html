@@ -32,17 +32,13 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('admin_predictions') }}">Daftar Prediksi</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('prediksi') }}"><i class="fas fa-heartbeat"></i> Prediksi</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('history') }}"><i class="fas fa-history"></i> History {{ session.full_name }}</a>
+                            </li>
                         {% endif %}
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'prediksi' %}active{% endif %}" href="{{ url_for('prediksi') }}">
-                                <i class="fas fa-heartbeat"></i> Prediksi
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'history' %}active{% endif %}" href="{{ url_for('history') }}">
-                                <i class="fas fa-history"></i> History {{ session.full_name }}
-                            </a>
-                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 {{ session.full_name }}

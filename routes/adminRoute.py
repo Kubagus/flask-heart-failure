@@ -16,42 +16,32 @@ import io
 admin_bp = Blueprint('admin', __name__)
 
 def adminRoute(app):
-# Admin dashboard
     @app.route('/admin/dashboard')
     @admin_required
     def admin_dashboard():
         conn = get_db_connection()
-        users = conn.execute('SELECT * FROM users WHERE role != "admin"').fetchall()
-        predictions = get_user_predictions()
-        conn.close()
+        try:
+            # Get total users
+            total_users = conn.execute('SELECT COUNT(*) FROM users WHERE role = ?', ('patient',)).fetchone()[0]
+            
+            # Get total predictions
+            total_predictions = conn.execute('SELECT COUNT(*) FROM predictions').fetchone()[0]
+            
+            # Get recent predictions with user info
+            recent_predictions = conn.execute(
+                """SELECT p.*, u.username, u.full_name, r.* 
+                FROM predictions p 
+                JOIN users u ON p.user_id = u.id 
+                JOIN risk_by_algorithm r ON p.id = r.prediction_id 
+                ORDER BY p.created_at DESC LIMIT 5"""
+            ).fetchall()
 
-        # Calculate statistics
-        total_users = len(users)
-        total_predictions = len(predictions)
-        
-        # Count high risk predictions
-        high_risk_predictions = 0
-        for pred in predictions:
-            result = json.loads(pred['prediction_result'])
-            # Count as high risk if any of the models predict high risk
-            if any(risk == 'Risiko tinggi terkena gagal jantung' for risk in [
-                result.get('decision_tree_risk', ''),
-                result.get('random_forest_risk', ''),
-                result.get('xgboost_risk', '')
-            ]):
-                high_risk_predictions += 1
-
-        # Count today's predictions
-        today = datetime.now().date()
-        today_predictions = sum(1 for pred in predictions 
-                              if datetime.strptime(pred['created_at'], '%Y-%m-%d %H:%M:%S').date() == today)
-
-        return render_template('admin/dashboard.html',
-                             total_users=total_users,
-                             total_predictions=total_predictions,
-                             high_risk_predictions=high_risk_predictions,
-                             today_predictions=today_predictions,
-                             recent_predictions=predictions[:5])
+            return render_template('admin/dashboard.html',
+                                total_users=total_users,
+                                total_predictions=total_predictions,
+                                recent_predictions=recent_predictions)
+        finally:
+            conn.close()
 
     @app.route('/admin/users')
     @admin_required
@@ -138,43 +128,7 @@ def adminRoute(app):
     @admin_required
     def admin_predictions():
         predictions = get_user_predictions()
-        
-        # Process predictions to make them more readable
-        processed_predictions = []
-        for pred in predictions:
-            prediction_data = json.loads(pred['prediction_data'])
-            prediction_result = json.loads(pred['prediction_result'])
-            
-            processed_pred = {
-                'id': pred['id'],
-                'full_name': pred['full_name'],
-                'created_at': pred['created_at'],
-                'risk_level': 'High' if any(risk == 'Risiko tinggi terkena gagal jantung' for risk in [
-                    prediction_result.get('decision_tree_risk', ''),
-                    prediction_result.get('random_forest_risk', ''),
-                    prediction_result.get('xgboost_risk', '')
-                ]) else 'Low',
-                'decision_tree': prediction_result.get('decision_tree', 0),
-                'decision_tree_risk': prediction_result.get('decision_tree_risk', ''),
-                'random_forest': prediction_result.get('random_forest', 0),
-                'random_forest_risk': prediction_result.get('random_forest_risk', ''),
-                'xgboost': prediction_result.get('xgboost', 0),
-                'xgboost_risk': prediction_result.get('xgboost_risk', ''),
-                'age': prediction_data.get('age', ''),
-                'sex': prediction_data.get('sex', ''),
-                'chestpaintype': prediction_data.get('chestpaintype', ''),
-                'restingbp': prediction_data.get('restingbp', ''),
-                'cholesterol': prediction_data.get('cholesterol', ''),
-                'fastingbs': prediction_data.get('fastingbs', ''),
-                'restingecg': prediction_data.get('restingecg', ''),
-                'maxhr': prediction_data.get('maxhr', ''),
-                'exerciseangina': prediction_data.get('exerciseangina', ''),
-                'oldpeak': prediction_data.get('oldpeak', ''),
-                'stslope': prediction_data.get('stslope', '')
-            }
-            processed_predictions.append(processed_pred)
-        
-        return render_template('admin/predictions.html', predictions=processed_predictions)
+        return render_template('admin/predictions.html', predictions=predictions)
 
     @app.route('/admin/predictions/export/<format>')
     @admin_required
@@ -290,13 +244,14 @@ def adminRoute(app):
         conn = get_db_connection()
         try:
             # Check if prediction exists
-            prediction = conn.execute('SELECT * FROM prediction_history WHERE id = ?', (prediction_id,)).fetchone()
+            prediction = conn.execute('SELECT * FROM predictions WHERE id = ?', (prediction_id,)).fetchone()
             if not prediction:
                 flash('Prediction not found', 'danger')
                 return redirect(url_for('admin_predictions'))
 
-            # Delete the prediction
-            conn.execute('DELETE FROM prediction_history WHERE id = ?', (prediction_id,))
+            # Delete the prediction and its associated risk data
+            conn.execute('DELETE FROM risk_by_algorithm WHERE prediction_id = ?', (prediction_id,))
+            conn.execute('DELETE FROM predictions WHERE id = ?', (prediction_id,))
             conn.commit()
             flash('Prediction deleted successfully', 'success')
         except Exception as e:

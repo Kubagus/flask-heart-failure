@@ -26,7 +26,11 @@ def main(app):
         conn = get_db_connection()
         # Get predictions for the current user
         predictions = conn.execute(
-            'SELECT * FROM prediction_history WHERE user_id = ? ORDER BY created_at DESC',
+            """SELECT p.*, r.* 
+            FROM predictions p 
+            JOIN risk_by_algorithm r ON p.id = r.prediction_id 
+            WHERE p.user_id = ? 
+            ORDER BY p.created_at DESC""",
             (session['user_id'],)
         ).fetchall()
         conn.close()
@@ -34,18 +38,34 @@ def main(app):
         # Process predictions to make them more readable
         processed_predictions = []
         for pred in predictions:
-            prediction_data = json.loads(pred['prediction_data'])
-            prediction_result = json.loads(pred['prediction_result'])
-            
             processed_pred = {
                 'id': pred['id'],
                 'created_at': pred['created_at'],
-                'data': prediction_data,
-                'result': prediction_result,
+                'data': {
+                    'age': pred['age'],
+                    'sex': pred['sex'],
+                    'chestpaintype': pred['chestpaintype'],
+                    'restingbp': pred['restingbp'],
+                    'cholesterol': pred['cholesterol'],
+                    'fastingbs': pred['fastingbs'],
+                    'restingecg': pred['restingecg'],
+                    'maxhr': pred['maxhr'],
+                    'exerciseangina': pred['exerciseangina'],
+                    'oldpeak': pred['oldpeak'],
+                    'stslope': pred['stslope']
+                },
+                'result': {
+                    'decision_tree': pred['decision_tree'],
+                    'decision_tree_risk': pred['decision_tree_risk'],
+                    'random_forest': pred['random_forest'],
+                    'random_forest_risk': pred['random_forest_risk'],
+                    'xgboost': pred['xgboost'],
+                    'xgboost_risk': pred['xgboost_risk']
+                },
                 'risk_level': 'High' if any(risk == 'Risiko tinggi terkena gagal jantung' for risk in [
-                    prediction_result.get('decision_tree_risk', ''),
-                    prediction_result.get('random_forest_risk', ''),
-                    prediction_result.get('xgboost_risk', '')
+                    pred['decision_tree_risk'],
+                    pred['random_forest_risk'],
+                    pred['xgboost_risk']
                 ]) else 'Low'
             }
             processed_predictions.append(processed_pred)
