@@ -101,6 +101,16 @@
       stslope: document.getElementById('stslope').value
     };
 
+    // Konfirmasi sebelum prediksi
+    let confirmMsg = 'Apakah Anda yakin data input sudah sesuai?\n';
+    for (const [key, value] of Object.entries(formData)) {
+      confirmMsg += `- ${key}: ${value}\n`;
+    }
+    const confirmed = confirm(confirmMsg);
+    if (!confirmed) {
+      return; // Batalkan prediksi jika user tidak setuju
+    }
+
     // Log the form data being sent
     console.log('Sending form data:', formData);
 
