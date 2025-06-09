@@ -33,23 +33,23 @@
         <form id="predictionForm">
           <div class="row">
             <div class="col-md-6">
-              <div class="mb-3"><label class="form-label">Age</label><input type="number" class="form-control" id="age" required /></div>
-              <div class="mb-3"><label class="form-label">Sex</label><select class="form-select" id="sex"><option value="M">Male</option><option value="F">Female</option></select></div>
-              <div class="mb-3"><label class="form-label">Chest Pain Type</label><select class="form-select" id="chestpaintype"><option value="TA">Typical Angina</option><option value="ATA">Atypical Angina</option><option value="NAP">Non-Anginal Pain</option><option value="ASY">Asymptomatic</option></select></div>
-              <div class="mb-3"><label class="form-label">Resting BP</label><input type="number" class="form-control" id="restingbp" required /></div>
-              <div class="mb-3"><label class="form-label">Cholesterol</label><input type="number" class="form-control" id="cholesterol" required /></div>
-              <div class="mb-3"><label class="form-label">Fasting Blood Sugar</label><select class="form-select" id="fastingbs"><option value="0">No</option><option value="1">Yes</option></select></div>
+              <div class="mb-3"><label class="form-label">Usia</label><input type="number" class="form-control" id="age" required /></div>
+              <div class="mb-3"><label class="form-label">Jenis Kelamin</label><select class="form-select" id="sex"><option value="M">Laki-laki</option><option value="F">Perempuan</option></select></div>
+              <div class="mb-3"><label class="form-label">Tipe Nyeri Dada</label><select class="form-select" id="chestpaintype"><option value="TA">Typical Angina</option><option value="ATA">Atypical Angina</option><option value="NAP">Non-Anginal Pain</option><option value="ASY">Asymptomatic</option></select></div>
+              <div class="mb-3"><label class="form-label">Tekanan Darah Istirahat</label><input type="number" class="form-control" id="restingbp" required /></div>
+              <div class="mb-3"><label class="form-label">Kolesterol</label><input type="number" class="form-control" id="cholesterol" required /></div>
+              <div class="mb-3"><label class="form-label">Gula Darah Puasa</label><select class="form-select" id="fastingbs"><option value="0">Tidak</option><option value="1">Ya</option></select></div>
             </div>
 
             <div class="col-md-6">
-              <div class="mb-3"><label class="form-label">Resting ECG</label><select class="form-select" id="restingecg"><option value="Normal">Normal</option><option value="ST">ST-T Abnormality</option><option value="LVH">Left Ventricular Hypertrophy</option></select></div>
-              <div class="mb-3"><label class="form-label">Max Heart Rate</label><input type="number" class="form-control" id="maxhr" required /></div>
-              <div class="mb-3"><label class="form-label">Exercise Angina</label><select class="form-select" id="exerciseangina"><option value="N">No</option><option value="Y">Yes</option></select></div>
+              <div class="mb-3"><label class="form-label">ECG Istirahat</label><select class="form-select" id="restingecg"><option value="Normal">Normal</option><option value="ST">ST-T Abnormality</option><option value="LVH">Left Ventricular Hypertrophy</option></select></div>
+              <div class="mb-3"><label class="form-label">Detak Jantung Maksimum</label><input type="number" class="form-control" id="maxhr" required /></div>
+              <div class="mb-3"><label class="form-label">Angina Saat Olahraga</label><select class="form-select" id="exerciseangina"><option value="N">Tidak</option><option value="Y">Ya</option></select></div>
               <div class="mb-3"><label class="form-label">Oldpeak</label><input type="number" step="0.1" class="form-control" id="oldpeak" required /></div>
               <div class="mb-3"><label class="form-label">ST Slope</label><select class="form-select" id="stslope"><option value="Up">Up</option><option value="Flat">Flat</option><option value="Down">Down</option></select></div>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary w-100 mt-3">Predict</button>
+          <button type="submit" class="btn btn-primary w-100 mt-3">Prediksi</button>
         </form>
       </div>
     </div>
@@ -57,14 +57,14 @@
     <!-- Hasil Prediksi -->
     <div class="col-md-4">
       <div class="card p-4">
-        <h4 class="mb-3">Prediction Results</h4>
+        <h4 class="mb-3">Hasil Prediksi</h4>
         <div id="results">
           <div class="result-item mb-4">
             <h6>Decision Tree</h6>
             <div class="progress mb-1"><div class="progress-bar" role="progressbar" style="width: 0%"></div></div>
             <span class="percentage">0%</span>
             <p class="risk-text small text-muted">
-              <span class="badge bg-secondary">No prediction yet</span>
+              <span class="badge bg-secondary">Belum ada prediksi</span>
             </p>
           </div>
           <div class="result-item mb-4">
@@ -72,7 +72,7 @@
             <div class="progress mb-1"><div class="progress-bar" role="progressbar" style="width: 0%"></div></div>
             <span class="percentage">0%</span>
             <p class="risk-text small text-muted">
-              <span class="badge bg-secondary">No prediction yet</span>
+              <span class="badge bg-secondary">Belum ada prediksi</span>
             </p>
           </div>
           <div class="result-item mb-4">
@@ -80,10 +80,30 @@
             <div class="progress mb-1"><div class="progress-bar" role="progressbar" style="width: 0%"></div></div>
             <span class="percentage">0%</span>
             <p class="risk-text small text-muted">
-              <span class="badge bg-secondary">No prediction yet</span>
+              <span class="badge bg-secondary">Belum ada prediksi</span>
             </p>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Konfirmasi Modal -->
+<div class="modal fade" id="confirmPredictionModal" tabindex="-1" aria-labelledby="confirmPredictionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmPredictionModalLabel">Konfirmasi Data Prediksi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Apakah Anda yakin data input sudah sesuai?</p>
+        <ul id="confirmationDataList" class="list-group"></ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-primary" id="confirmPredictButton">Konfirmasi Prediksi</button>
       </div>
     </div>
   </div>
@@ -107,78 +127,138 @@
       stslope: document.getElementById('stslope').value
     };
 
-    // Konfirmasi sebelum prediksi
-    let confirmMsg = 'Apakah Anda yakin data input sudah sesuai?\n';
-    for (const [key, value] of Object.entries(formData)) {
-      confirmMsg += `- ${key}: ${value}\n`;
-    }
-    const confirmed = confirm(confirmMsg);
-    if (!confirmed) {
-      return; // Batalkan prediksi jika user tidak setuju
-    }
+    // Tampilkan modal konfirmasi
+    showConfirmationModal(formData);
 
-    // Log the form data being sent
-    console.log('Sending form data:', formData);
+    // Fungsi untuk menampilkan modal konfirmasi
+    function showConfirmationModal(data) {
+      const confirmationDataList = document.getElementById('confirmationDataList');
+      confirmationDataList.innerHTML = ''; // Bersihkan daftar sebelumnya
 
-    try {
-      const response = await fetch('/predict', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify(formData)
-      });
+      const displayLabels = {
+        age: 'Usia',
+        sex: 'Jenis Kelamin',
+        chestpaintype: 'Tipe Nyeri Dada',
+        restingbp: 'Tekanan Darah Istirahat',
+        cholesterol: 'Kolesterol',
+        fastingbs: 'Gula Darah Puasa',
+        restingecg: 'ECG Istirahat',
+        maxhr: 'Detak Jantung Maksimum',
+        exerciseangina: 'Angina Saat Olahraga',
+        oldpeak: 'Oldpeak',
+        stslope: 'ST Slope'
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'An error occurred during prediction');
+      const sexMapping = { 'M': 'Laki-laki', 'F': 'Perempuan' };
+      const chestPainTypeMapping = { 'TA': 'Typical Angina', 'ATA': 'Atypical Angina', 'NAP': 'Non-Anginal Pain', 'ASY': 'Asymptomatic' };
+      const fastingBsMapping = { '0': 'Tidak', '1': 'Ya' };
+      const restingEcgMapping = { 'Normal': 'Normal', 'ST': 'ST-T Abnormality', 'LVH': 'Left Ventricular Hypertrophy' };
+      const exerciseAnginaMapping = { 'N': 'Tidak', 'Y': 'Ya' };
+      const stSlopeMapping = { 'Up': 'Up', 'Flat': 'Flat', 'Down': 'Down' };
+
+      for (const [key, value] of Object.entries(data)) {
+        let displayValue = value;
+        switch (key) {
+          case 'sex':
+            displayValue = sexMapping[value] || value;
+            break;
+          case 'chestpaintype':
+            displayValue = chestPainTypeMapping[value] || value;
+            break;
+          case 'fastingbs':
+            displayValue = fastingBsMapping[value] || value;
+            break;
+          case 'restingecg':
+            displayValue = restingEcgMapping[value] || value;
+            break;
+          case 'exerciseangina':
+            displayValue = exerciseAnginaMapping[value] || value;
+            break;
+          case 'stslope':
+            displayValue = stSlopeMapping[value] || value;
+            break;
+        }
+
+        const listItem = document.createElement('li');
+        listItem.className = 'list-group-item';
+        listItem.innerHTML = `<strong>${displayLabels[key] || key}:</strong> ${displayValue}`;
+        confirmationDataList.appendChild(listItem);
       }
 
-      const data = await response.json();
-      const results = document.querySelectorAll('.result-item');
-      const models = ['decision_tree', 'random_forest', 'xgboost'];
-      const risks = ['decision_tree_risk', 'random_forest_risk', 'xgboost_risk'];
+      const confirmModal = new bootstrap.Modal(document.getElementById('confirmPredictionModal'));
+      confirmModal.show();
 
-      results.forEach((result, index) => {
-        const percentage = data[models[index]];
-        const progressBar = result.querySelector('.progress-bar');
-        const percentageText = result.querySelector('.percentage');
-        const riskText = result.querySelector('.risk-text');
-        const riskLevel = data[risks[index]];
+      document.getElementById('confirmPredictButton').onclick = async () => {
+        confirmModal.hide();
+        await sendPredictionRequest(data);
+      };
+    }
 
-        progressBar.style.width = `${percentage}%`;
-        percentageText.textContent = `${percentage}%`;
-        
-        // Update risk level badge
-        let badgeClass = 'bg-secondary';
-        let riskLabel = 'Unknown';
-        
-        if (riskLevel.includes('tinggi')) {
-          badgeClass = 'bg-danger';
-          riskLabel = 'High';
-        } else if (riskLevel.includes('sedang')) {
-          badgeClass = 'bg-warning';
-          riskLabel = 'Medium';
-        } else if (riskLevel.includes('rendah')) {
-          badgeClass = 'bg-success';
-          riskLabel = 'Low';
+    // Fungsi untuk mengirim permintaan prediksi
+    async function sendPredictionRequest(data) {
+      // Log the form data being sent
+      console.log('Sending form data:', data);
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'An error occurred during prediction');
         }
-        
-        riskText.innerHTML = `<span class="badge ${badgeClass}">${riskLabel}</span>`;
 
-        if (percentage < 30) {
-          progressBar.className = 'progress-bar bg-success';
-        } else if (percentage < 70) {
-          progressBar.className = 'progress-bar bg-warning';
-        } else {
-          progressBar.className = 'progress-bar bg-danger';
-        }
-      });
+        const resultData = await response.json();
+        const results = document.querySelectorAll('.result-item');
+        const models = ['decision_tree', 'random_forest', 'xgboost'];
+        const risks = ['decision_tree_risk', 'random_forest_risk', 'xgboost_risk'];
 
-    } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred during prediction.');
+        results.forEach((result, index) => {
+          const percentage = resultData[models[index]];
+          const progressBar = result.querySelector('.progress-bar');
+          const percentageText = result.querySelector('.percentage');
+          const riskText = result.querySelector('.risk-text');
+          const riskLevel = resultData[risks[index]];
+
+          progressBar.style.width = `${percentage}%`;
+          percentageText.textContent = `${percentage}%`;
+          
+          // Update risk level badge
+          let badgeClass = 'bg-secondary';
+          let riskLabel = 'Unknown';
+          
+          if (riskLevel.includes('tinggi')) {
+            badgeClass = 'bg-danger';
+            riskLabel = 'Tinggi';
+          } else if (riskLevel.includes('sedang')) {
+            badgeClass = 'bg-warning';
+            riskLabel = 'Sedang';
+          } else if (riskLevel.includes('rendah')) {
+            badgeClass = 'bg-success';
+            riskLabel = 'Rendah';
+          }
+          
+          riskText.innerHTML = `<span class="badge ${badgeClass}">${riskLabel}</span>`;
+
+          if (percentage < 30) {
+            progressBar.className = 'progress-bar bg-success';
+          } else if (percentage < 70) {
+            progressBar.className = 'progress-bar bg-warning';
+          } else {
+            progressBar.className = 'progress-bar bg-danger';
+          }
+        });
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan selama prediksi.');
+      }
     }
   });
 </script>
