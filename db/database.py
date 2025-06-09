@@ -120,27 +120,35 @@ def save_prediction(user_id, prediction_data, prediction_result):
     finally:
         conn.close()
 
-def get_user_predictions(user_id=None):
+def get_user_predictions(user_id=None, start_date=None, end_date=None):
     conn = get_db_connection()
     try:
+        query = """SELECT p.*, u.username, u.full_name, r.* 
+                FROM predictions p 
+                JOIN users u ON p.user_id = u.id 
+                JOIN risk_by_algorithm r ON p.id = r.prediction_id 
+                """
+        params = []
+
+        conditions = []
         if user_id:
-            predictions = conn.execute(
-                """SELECT p.*, u.username, u.full_name, r.* 
-                FROM predictions p 
-                JOIN users u ON p.user_id = u.id 
-                JOIN risk_by_algorithm r ON p.id = r.prediction_id 
-                WHERE p.user_id = ? 
-                ORDER BY p.created_at DESC""",
-                (user_id,)
-            ).fetchall()
-        else:
-            predictions = conn.execute(
-                """SELECT p.*, u.username, u.full_name, r.* 
-                FROM predictions p 
-                JOIN users u ON p.user_id = u.id 
-                JOIN risk_by_algorithm r ON p.id = r.prediction_id 
-                ORDER BY p.created_at DESC"""
-            ).fetchall()
+            conditions.append("p.user_id = ?")
+            params.append(user_id)
+        
+        if start_date:
+            conditions.append("DATE(p.created_at) >= DATE(?)")
+            params.append(start_date)
+        
+        if end_date:
+            conditions.append("DATE(p.created_at) <= DATE(?)")
+            params.append(end_date)
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        
+        query += " ORDER BY p.created_at DESC"
+
+        predictions = conn.execute(query, tuple(params)).fetchall()
         return predictions
     finally:
         conn.close()

@@ -166,40 +166,56 @@ def adminRoute(app):
             # Create table data
             table_data = [['User', 'Date', 'Input Data', 'Result']]
             for pred in predictions:
-                pred_data = json.loads(pred['prediction_data'])
-                pred_result = json.loads(pred['prediction_result'])
+                pred_dict = dict(pred)
+
+                # Format input data directly from pred_dict
+                input_data_formatted = "<br/>".join([
+                    f"<strong>Age:</strong> {pred_dict.get('age', 'N/A')}",
+                    f"<strong>Sex:</strong> {pred_dict.get('sex', 'N/A')}",
+                    f"<strong>Chest Pain Type:</strong> {pred_dict.get('chestpaintype', 'N/A')}",
+                    f"<strong>Resting BP:</strong> {pred_dict.get('restingbp', 'N/A')}",
+                    f"<strong>Cholesterol:</strong> {pred_dict.get('cholesterol', 'N/A')}",
+                    f"<strong>Fasting BS:</strong> {pred_dict.get('fastingbs', 'N/A')}",
+                    f"<strong>Resting ECG:</strong> {pred_dict.get('restingecg', 'N/A')}",
+                    f"<strong>Max HR:</strong> {pred_dict.get('maxhr', 'N/A')}",
+                    f"<strong>Exercise Angina:</strong> {pred_dict.get('exerciseangina', 'N/A')}",
+                    f"<strong>Old Peak:</strong> {pred_dict.get('oldpeak', 'N/A')}",
+                    f"<strong>ST Slope:</strong> {pred_dict.get('stslope', 'N/A')}"
+                ])
                 
-                # Format input data
-                input_data = "\n".join([f"{k}: {v}" for k, v in pred_data.items()])
-                
-                # Format result
-                result = "\n".join([
-                    f"Decision Tree: {pred_result['decision_tree']}% ({pred_result['decision_tree_risk']})",
-                    f"Random Forest: {pred_result['random_forest']}% ({pred_result['random_forest_risk']})",
-                    f"XGBoost: {pred_result['xgboost']}% ({pred_result['xgboost_risk']})"
+                # Format result directly from pred_dict
+                result_formatted = "<br/>".join([
+                    f"<strong>Decision Tree:</strong> {pred_dict.get('decision_tree', 'N/A')}% ({pred_dict.get('decision_tree_risk', 'N/A')})",
+                    f"<strong>Random Forest:</strong> {pred_dict.get('random_forest', 'N/A')}% ({pred_dict.get('random_forest_risk', 'N/A')})",
+                    f"<strong>XGBoost:</strong> {pred_dict.get('xgboost', 'N/A')}% ({pred_dict.get('xgboost_risk', 'N/A')})"
                 ])
                 
                 table_data.append([
-                    pred['full_name'],
-                    pred['created_at'],
-                    input_data,
-                    result
+                    Paragraph(pred_dict.get('full_name', 'N/A'), styles['Normal']),
+                    Paragraph(str(pred_dict.get('created_at', 'N/A')), styles['Normal']),
+                    Paragraph(input_data_formatted, styles['Normal']),
+                    Paragraph(result_formatted, styles['Normal'])
                 ])
 
             # Create table
-            table = Table(table_data, colWidths=[100, 100, 200, 200])
+            table = Table(table_data, colWidths=[80, 100, 180, 180])
             table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 14),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
                 ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
                 ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
                 ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
                 ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                ('FONTSIZE', (0, 1), (-1, -1), 12),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('LEFTPADDING', (0,0), (-1,-1), 6),
+                ('RIGHTPADDING', (0,0), (-1,-1), 6),
+                ('TOPPADDING', (0,0), (-1,-1), 6),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 6),
             ]))
             elements.append(table)
 
@@ -235,3 +251,100 @@ def adminRoute(app):
         finally:
             conn.close()
         return redirect(url_for('admin_predictions'))
+
+    @app.route('/print_all_predictions')
+    @admin_required
+    def print_all_predictions():
+        predictions = get_user_predictions()
+        return generate_predictions_pdf(predictions, "All Predictions Report")
+
+    @app.route('/print_predictions_by_date_range')
+    @admin_required
+    def print_predictions_by_date_range():
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+
+        if not start_date_str or not end_date_str:
+            flash('Start date and end date are required for printing by range.', 'danger')
+            return redirect(url_for('admin_predictions'))
+
+        predictions = get_user_predictions(start_date=start_date_str, end_date=end_date_str)
+        return generate_predictions_pdf(predictions, f"Predictions Report from {start_date_str} to {end_date_str}")
+
+def generate_predictions_pdf(predictions, title_text):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # Add title
+    title = Paragraph(title_text, styles['Title'])
+    elements.append(title)
+    elements.append(Spacer(1, 20))
+
+    # Create table data
+    table_data = [['User', 'Date', 'Input Data', 'Result']]
+    for pred in predictions:
+        pred_dict = dict(pred)
+
+        # Format input data directly from pred_dict
+        input_data_formatted = "<br/>".join([
+            f"<strong>Age:</strong> {pred_dict.get('age', 'N/A')}",
+            f"<strong>Sex:</strong> {pred_dict.get('sex', 'N/A')}",
+            f"<strong>Chest Pain Type:</strong> {pred_dict.get('chestpaintype', 'N/A')}",
+            f"<strong>Resting BP:</strong> {pred_dict.get('restingbp', 'N/A')}",
+            f"<strong>Cholesterol:</strong> {pred_dict.get('cholesterol', 'N/A')}",
+            f"<strong>Fasting BS:</strong> {pred_dict.get('fastingbs', 'N/A')}",
+            f"<strong>Resting ECG:</strong> {pred_dict.get('restingecg', 'N/A')}",
+            f"<strong>Max HR:</strong> {pred_dict.get('maxhr', 'N/A')}",
+            f"<strong>Exercise Angina:</strong> {pred_dict.get('exerciseangina', 'N/A')}",
+            f"<strong>Old Peak:</strong> {pred_dict.get('oldpeak', 'N/A')}",
+            f"<strong>ST Slope:</strong> {pred_dict.get('stslope', 'N/A')}"
+        ])
+        
+        # Format result directly from pred_dict
+        result_formatted = "<br/>".join([
+            f"<strong>Decision Tree:</strong> {pred_dict.get('decision_tree', 'N/A')}% ({pred_dict.get('decision_tree_risk', 'N/A')})",
+            f"<strong>Random Forest:</strong> {pred_dict.get('random_forest', 'N/A')}% ({pred_dict.get('random_forest_risk', 'N/A')})",
+            f"<strong>XGBoost:</strong> {pred_dict.get('xgboost', 'N/A')}% ({pred_dict.get('xgboost_risk', 'N/A')})"
+        ])
+        
+        table_data.append([
+            Paragraph(pred_dict.get('full_name', 'N/A'), styles['Normal']),
+            Paragraph(str(pred_dict.get('created_at', 'N/A')), styles['Normal']),
+            Paragraph(input_data_formatted, styles['Normal']),
+            Paragraph(result_formatted, styles['Normal'])
+        ])
+
+    # Create table
+    # Increased column widths for better readability and to prevent text overflow
+    table = Table(table_data, colWidths=[80, 100, 180, 180])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('LEFTPADDING', (0,0), (-1,-1), 6),
+        ('RIGHTPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+    ]))
+    elements.append(table)
+
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name='predictions.pdf',
+        mimetype='application/pdf'
+    )

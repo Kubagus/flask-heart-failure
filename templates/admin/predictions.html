@@ -238,7 +238,7 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           <button type="button" class="btn btn-primary" id="printButton">Print</button>
-        }
+        </div>
       </div>
     </div>
   </div>
@@ -250,7 +250,7 @@
         <div class="modal-header">
           <h5 class="modal-title" id="exportModalLabel">Export Predictions</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        }
+        </div>
         <div class="modal-body">
           <form id="exportForm">
             <div class="mb-3">
@@ -339,8 +339,11 @@
             var data = this.data()
             var rowDate = new Date(data[2])
       
+            // Extract text from the Risk Level badge
+            var riskLevelText = $(data[3]).text().trim();
+
             if (printOption === 'all' || (printOption === 'range' && rowDate >= new Date(startDate) && rowDate <= new Date(endDate))) {
-              tableData.push(data)
+              tableData.push([data[0], data[1], data[2], riskLevelText])
             }
           })
       
@@ -453,5 +456,49 @@
         margin: 0;
     }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const printAllRadio = document.getElementById('printAll');
+            const printRangeRadio = document.getElementById('printRange');
+            const dateRangeInputs = document.getElementById('dateRangeInputs');
+            const printButton = document.getElementById('printButton');
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+
+            function toggleDateRangeInputs() {
+                if (printRangeRadio.checked) {
+                    dateRangeInputs.style.display = 'block';
+                } else {
+                    dateRangeInputs.style.display = 'none';
+                }
+            }
+
+            // Initial check
+            toggleDateRangeInputs();
+
+            printAllRadio.addEventListener('change', toggleDateRangeInputs);
+            printRangeRadio.addEventListener('change', toggleDateRangeInputs);
+
+            printButton.addEventListener('click', function() {
+                let url = '';
+                if (printAllRadio.checked) {
+                    url = '/print_all_predictions';
+                } else if (printRangeRadio.checked) {
+                    const startDate = startDateInput.value;
+                    const endDate = endDateInput.value;
+
+                    if (!startDate || !endDate) {
+                        alert('Please select both start and end dates.');
+                        return;
+                    }
+                    url = `/print_predictions_by_date_range?start_date=${startDate}&end_date=${endDate}`;
+                }
+
+                if (url) {
+                    window.open(url, '_blank');
+                }
+            });
+        });
+    </script>
   {% endblock %}
 {% endblock %}
