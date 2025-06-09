@@ -65,8 +65,8 @@ endblock %} {% block content %}
 							<td>{{ row[4] }}</td>
 							<td>
 								<span
-									class="badge rounded-pill {% if row[-1] == 1 %}bg-danger{% else %}bg-success{% endif %}">
-									{% if row[-1] == 1 %}Positive{% else %}Negative{% endif %}
+									class="badge rounded-pill {% if row[-1] == 1 %}bg-danger{% elif row[-1] == 0.5 %}bg-warning{% else %}bg-success{% endif %}">
+									{% if row[-1] == 1 %}High{% elif row[-1] == 0.5 %}Medium{% else %}Low{% endif %}
 								</span>
 							</td>
 						</tr>

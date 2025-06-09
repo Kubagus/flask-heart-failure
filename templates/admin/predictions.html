@@ -1,393 +1,429 @@
-{% extends "admin/base.html" %}
+{% extends 'admin/base.html' %}
 
-{% block title %}Predictions - Admin Dashboard{% endblock %}
+{% block title %}
+  Predictions - Admin Dashboard
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+  <div class="container-fluid">
     <div class="row">
-        <!-- Main content -->
-        <main class="col-12 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Predictions</h1>
-                {% if predictions %}
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <div class="btn-group me-2">
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#printModal">
-                            <i class="fas fa-print"></i> Print
-                        </button>
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal">
-                            <i class="fas fa-file-export"></i> Export
-                        </button>
-                    </div>
-                </div>
-                {% endif %}
+      <!-- Main content -->
+      <main class="col-12 px-md-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+          <h1 class="h2">Predictions</h1>
+          {% if predictions %}
+            <div class="btn-toolbar mb-2 mb-md-0">
+              <div class="btn-group me-2">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fas fa-print"></i> Print</button>
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal"><i class="fas fa-file-export"></i> Export</button>
+              </div>
             </div>
+          {% endif %}
+        </div>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+        {% with messages=get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
 
-            <div class="card shadow mb-4">
-                <div class="card-body">
-                    {% if predictions %}
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="predictionsTable" width="100%" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>User</th>
-                                    <th>Date</th>
-                                    <th>Risk Level</th>
-                                    <th>Details</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for pred in predictions %}
-                                <tr>
-                                    <td></td>
-                                    <td>{{ pred.full_name }}</td>
-                                    <td>{{ pred.created_at }}</td>
-                                    <td>
-                                            <span class="badge {% if pred.risk_level == 'High' %}bg-danger{% elif pred.risk_level == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
-                                            {{ pred.risk_level }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detailsModal{{ pred.id }}">
-                                            <i class="fas fa-info-circle"></i> View Details
-                                        </button>
-                                    </td>
-                                </tr>
+        <div class="card shadow mb-4">
+          <div class="card-body">
+            {% if predictions %}
+              <div class="table-responsive">
+                <table class="table table-bordered" id="predictionsTable" width="100%" cellspacing="0">
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>User</th>
+                      <th>Date</th>
+                      <th>Risk Level</th>
+                      <th>Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for pred in predictions %}
+                      <tr>
+                        <td></td>
+                        <td>{{ pred.full_name }}</td>
+                        <td>{{ pred.created_at }}</td>
+                        <td>
+                          <span class="badge {% if pred.random_forest_risk == 'Risiko tinggi terkena gagal jantung' %}
+                              bg-danger
+                            {% elif pred.random_forest_risk == 'Risiko sedang terkena gagal jantung' %}
+                              bg-warning
+                            {% else %}
+                              bg-success
+                            {% endif %} float-end">
+                            {{ pred.random_forest_risk }}
+                          </span>
+                        </td>
+                        <td>
+                          <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detailsModal{{ pred.id }}"><i class="fas fa-info-circle"></i> View Details</button>
+                        </td>
+                      </tr>
 
-                                <!-- Details Modal -->
-                                <div class="modal fade" id="detailsModal{{ pred.id }}" tabindex="-1" aria-labelledby="detailsModalLabel{{ pred.id }}" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="detailsModalLabel{{ pred.id }}">Prediction Details</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <h6>Model Predictions:</h6>
-                                                        <ul class="list-group">
-                                                            <li class="list-group-item">
-                                                                <strong>Decision Tree:</strong>
-                                                                <span class="badge {% if pred.decision_tree_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.decision_tree_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %} float-end">
-                                                                    {{ pred.decision_tree_risk }}
-                                                                </span>
-                                                                <br>
-                                                                <small>Probability: {{ pred.decision_tree }}%</small>
-                                                            </li>
-                                                            <li class="list-group-item">
-                                                                <strong>Random Forest:</strong>
-                                                                <span class="badge {% if pred.random_forest_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.random_forest_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %} float-end">
-                                                                    {{ pred.random_forest_risk }}
-                                                                </span>
-                                                                <br>
-                                                                <small>Probability: {{ pred.random_forest }}%</small>
-                                                            </li>
-                                                            <li class="list-group-item">
-                                                                <strong>XGBoost:</strong>
-                                                                <span class="badge {% if pred.xgboost_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.xgboost_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %} float-end">
-                                                                    {{ pred.xgboost_risk }}
-                                                                </span>
-                                                                <br>
-                                                                <small>Probability: {{ pred.xgboost }}%</small>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <h6>Input Data:</h6>
-                                                        <ul class="list-group">
-                                                            <li class="list-group-item"><strong>Age:</strong> {{ pred.age }}</li>
-                                                            <li class="list-group-item"><strong>Sex:</strong> {{ pred.sex }}</li>
-                                                            <li class="list-group-item"><strong>Chest Pain Type:</strong> {{ pred.chestpaintype }}</li>
-                                                            <li class="list-group-item"><strong>Resting BP:</strong> {{ pred.restingbp }}</li>
-                                                            <li class="list-group-item"><strong>Cholesterol:</strong> {{ pred.cholesterol }}</li>
-                                                            <li class="list-group-item"><strong>Fasting BS:</strong> {{ pred.fastingbs }}</li>
-                                                            <li class="list-group-item"><strong>Resting ECG:</strong> {{ pred.restingecg }}</li>
-                                                            <li class="list-group-item"><strong>Max HR:</strong> {{ pred.maxhr }}</li>
-                                                            <li class="list-group-item"><strong>Exercise Angina:</strong> {{ pred.exerciseangina }}</li>
-                                                            <li class="list-group-item"><strong>Old Peak:</strong> {{ pred.oldpeak }}</li>
-                                                            <li class="list-group-item"><strong>ST Slope:</strong> {{ pred.stslope }}</li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            </div>
-                                        </div>
-                                    </div>
+                      <!-- Details Modal -->
+                      <div class="modal fade" id="detailsModal{{ pred.id }}" tabindex="-1" aria-labelledby="detailsModalLabel{{ pred.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="detailsModalLabel{{ pred.id }}">Prediction Details</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                              <div class="row">
+                                <div class="col-md-6">
+                                  <h6>Model Predictions:</h6>
+                                  <ul class="list-group">
+                                    <li class="list-group-item">
+                                      <strong>Decision Tree:</strong>
+                                      <span class="badge {% if pred.decision_tree_risk == 'Risiko tinggi terkena gagal jantung' %}
+                                          bg-danger
+                                        {% elif pred.decision_tree_risk == 'Risiko sedang terkena gagal jantung' %}
+                                          bg-warning
+                                        {% else %}
+                                          bg-success
+                                        {% endif %} float-end">
+                                        {{ pred.decision_tree_risk }}
+                                      </span>
+                                      <br />
+                                      <small>Probability: {{ pred.decision_tree }}%</small>
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>Random Forest:</strong>
+                                      <span class="badge {% if pred.random_forest_risk == 'Risiko tinggi terkena gagal jantung' %}
+                                          bg-danger
+                                        {% elif pred.random_forest_risk == 'Risiko sedang terkena gagal jantung' %}
+                                          bg-warning
+                                        {% else %}
+                                          bg-success
+                                        {% endif %} float-end">
+                                        {{ pred.random_forest_risk }}
+                                      </span>
+                                      <br />
+                                      <small>Probability: {{ pred.random_forest }}%</small>
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>XGBoost:</strong>
+                                      <span class="badge {% if pred.xgboost_risk == 'Risiko tinggi terkena gagal jantung' %}
+                                          bg-danger
+                                        {% elif pred.xgboost_risk == 'Risiko sedang terkena gagal jantung' %}
+                                          bg-warning
+                                        {% else %}
+                                          bg-success
+                                        {% endif %} float-end">
+                                        {{ pred.xgboost_risk }}
+                                      </span>
+                                      <br />
+                                      <small>Probability: {{ pred.xgboost }}%</small>
+                                    </li>
+                                  </ul>
                                 </div>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
-                            <h4>No Predictions Found</h4>
-                            <p class="text-muted">There are no predictions in the system yet.</p>
+                                <div class="col-md-6">
+                                  <h6>Input Data:</h6>
+                                  <ul class="list-group">
+                                    <li class="list-group-item">
+                                      <strong>Age:</strong> {{ pred.age }}
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>Sex:</strong> {{ pred.sex }}
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>Chest Pain Type:</strong> {{ pred.chestpaintype }}
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>Resting BP:</strong> {{ pred.restingbp }}
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>Cholesterol:</strong> {{ pred.cholesterol }}
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>Fasting BS:</strong> {{ pred.fastingbs }}
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>Resting ECG:</strong> {{ pred.restingecg }}
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>Max HR:</strong> {{ pred.maxhr }}
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>Exercise Angina:</strong> {{ pred.exerciseangina }}
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>Old Peak:</strong> {{ pred.oldpeak }}
+                                    </li>
+                                    <li class="list-group-item">
+                                      <strong>ST Slope:</strong> {{ pred.stslope }}
+                                    </li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                          </div>
                         </div>
-                    {% endif %}
+                      </div>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="text-center py-4">
+                <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                <h4>No Predictions Found</h4>
+                <p class="text-muted">There are no predictions in the system yet.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Print Modal -->
+  <div class="modal fade" id="printModal" tabindex="-1" aria-labelledby="printModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="printModalLabel">Print Predictions</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="printForm">
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="printOption" id="printAll" value="all" checked />
+                <label class="form-check-label" for="printAll">Print All Predictions</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="printOption" id="printRange" value="range" />
+                <label class="form-check-label" for="printRange">Print Date Range</label>
+              </div>
+            </div>
+            <div id="dateRangeInputs" class="mb-3" style="display: none;">
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="startDate" class="form-label">Start Date</label>
+                  <input type="date" class="form-control" id="startDate" />
                 </div>
+                <div class="col-md-6">
+                  <label for="endDate" class="form-label">End Date</label>
+                  <input type="date" class="form-control" id="endDate" />
+                </div>
+              </div>
             </div>
-        </main>
-    </div>
-</div>
-
-<!-- Print Modal -->
-<div class="modal fade" id="printModal" tabindex="-1" aria-labelledby="printModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="printModalLabel">Print Predictions</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="printForm">
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="printOption" id="printAll" value="all" checked>
-                            <label class="form-check-label" for="printAll">
-                                Print All Predictions
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="printOption" id="printRange" value="range">
-                            <label class="form-check-label" for="printRange">
-                                Print Date Range
-                            </label>
-                        </div>
-                    </div>
-                    <div id="dateRangeInputs" class="mb-3" style="display: none;">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label for="startDate" class="form-label">Start Date</label>
-                                <input type="date" class="form-control" id="startDate">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="endDate" class="form-label">End Date</label>
-                                <input type="date" class="form-control" id="endDate">
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="printButton">Print</button>
-            </div>
+          </form>
         </div>
-    </div>
-</div>
-
-<!-- Export Modal -->
-<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exportModalLabel">Export Predictions</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="exportForm">
-                    <div class="mb-3">
-                        <label for="exportFormat" class="form-label">Export Format</label>
-                        <select class="form-select" id="exportFormat">
-                            <option value="csv">CSV</option>
-                            <option value="excel">Excel</option>
-                            <option value="pdf">PDF</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="exportOption" id="exportAll" value="all" checked>
-                            <label class="form-check-label" for="exportAll">
-                                Export All Predictions
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="exportOption" id="exportRange" value="range">
-                            <label class="form-check-label" for="exportRange">
-                                Export Date Range
-                            </label>
-                        </div>
-                    </div>
-                    <div id="exportDateRangeInputs" class="mb-3" style="display: none;">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label for="exportStartDate" class="form-label">Start Date</label>
-                                <input type="date" class="form-control" id="exportStartDate">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="exportEndDate" class="form-label">End Date</label>
-                                <input type="date" class="form-control" id="exportEndDate">
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="exportButton">Export</button>
-            </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="printButton">Print</button>
         </div>
+      </div>
     </div>
-</div>
+  </div>
 
-{% block scripts %}
-<script>
-    $(document).ready(function() {
+  <!-- Export Modal -->
+  <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exportModalLabel">Export Predictions</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="exportForm">
+            <div class="mb-3">
+              <label for="exportFormat" class="form-label">Export Format</label>
+              <select class="form-select" id="exportFormat">
+                <option value="csv">CSV</option>
+                <option value="excel">Excel</option>
+                <option value="pdf">PDF</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="exportOption" id="exportAll" value="all" checked />
+                <label class="form-check-label" for="exportAll">Export All Predictions</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="exportOption" id="exportRange" value="range" />
+                <label class="form-check-label" for="exportRange">Export Date Range</label>
+              </div>
+            </div>
+            <div id="exportDateRangeInputs" class="mb-3" style="display: none;">
+              <div class="row">
+                <div class="col-md-6">
+                  <label for="exportStartDate" class="form-label">Start Date</label>
+                  <input type="date" class="form-control" id="exportStartDate" />
+                </div>
+                <div class="col-md-6">
+                  <label for="exportEndDate" class="form-label">End Date</label>
+                  <input type="date" class="form-control" id="exportEndDate" />
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="exportButton">Export</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% block scripts %}
+    <script>
+      $(document).ready(function () {
         // Initialize DataTable
         $('#predictionsTable').DataTable({
-            "order": [[2, "desc"]],
-            "columnDefs": [
-                { "orderable": false, "targets": [0, 4] }
-            ]
-        });
-
+          order: [[2, 'desc']],
+          columnDefs: [{ orderable: false, targets: [0, 4] }]
+        })
+      
         // Handle print option change
-        $('input[name="printOption"]').change(function() {
-            if ($(this).val() === 'range') {
-                $('#dateRangeInputs').show();
-            } else {
-                $('#dateRangeInputs').hide();
-            }
-        });
-
+        $('input[name="printOption"]').change(function () {
+          if ($(this).val() === 'range') {
+            $('#dateRangeInputs').show()
+          } else {
+            $('#dateRangeInputs').hide()
+          }
+        })
+      
         // Handle export option change
-        $('input[name="exportOption"]').change(function() {
-            if ($(this).val() === 'range') {
-                $('#exportDateRangeInputs').show();
-            } else {
-                $('#exportDateRangeInputs').hide();
-            }
-        });
-
+        $('input[name="exportOption"]').change(function () {
+          if ($(this).val() === 'range') {
+            $('#exportDateRangeInputs').show()
+          } else {
+            $('#exportDateRangeInputs').hide()
+          }
+        })
+      
         // Handle print button click
-        $('#printButton').click(function() {
-            var printOption = $('input[name="printOption"]:checked').val();
-            var startDate = $('#startDate').val();
-            var endDate = $('#endDate').val();
-
-            if (printOption === 'range' && (!startDate || !endDate)) {
-                alert('Please select both start and end dates');
-                return;
+        $('#printButton').click(function () {
+          var printOption = $('input[name="printOption"]:checked').val()
+          var startDate = $('#startDate').val()
+          var endDate = $('#endDate').val()
+      
+          if (printOption === 'range' && (!startDate || !endDate)) {
+            alert('Please select both start and end dates')
+            return
+          }
+      
+          var table = $('#predictionsTable').DataTable()
+          var tableData = []
+      
+          // Get all rows from DataTable
+          table.rows().every(function () {
+            var data = this.data()
+            var rowDate = new Date(data[2])
+      
+            if (printOption === 'all' || (printOption === 'range' && rowDate >= new Date(startDate) && rowDate <= new Date(endDate))) {
+              tableData.push(data)
             }
-
-            var table = $('#predictionsTable').DataTable();
-            var tableData = [];
-            
-            // Get all rows from DataTable
-            table.rows().every(function() {
-                var data = this.data();
-                var rowDate = new Date(data[2]);
-                
-                if (printOption === 'all' || 
-                    (printOption === 'range' && 
-                     rowDate >= new Date(startDate) && 
-                     rowDate <= new Date(endDate))) {
-                    tableData.push(data);
-                }
-            });
-
-            var printContent = `
-                <html>
-                <head>
-                    <title>Predictions Report</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; }
-                        .prediction-page {
-                            page-break-after: always;
-                            padding: 20px;
-                            margin-bottom: 20px;
-                        }
-                        .prediction-page:last-child {
-                            page-break-after: avoid;
-                        }
-                        .header { text-align: center; margin-bottom: 20px; }
-                        .prediction-info { margin-bottom: 20px; }
-                        .prediction-info p { margin: 5px 0; }
-                        .badge { padding: 5px 10px; border-radius: 4px; }
-                        .bg-danger { background-color: #dc3545; color: white; }
-                        .bg-warning { background-color: #ffc107; color: black; }
-                        .bg-success { background-color: #28a745; color: white; }
-                        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-                        .model-predictions, .input-data { margin-bottom: 20px; }
-                        .list-group-item { border: 1px solid #ddd; padding: 8px; margin-bottom: 5px; }
-                        .page-number { text-align: center; margin-top: 10px; font-size: 12px; color: #666; }
-                        .date-range { text-align: center; margin-bottom: 20px; font-style: italic; }
-                    </style>
-                </head>
-                <body>
-                            <div class="header">
-                        <h2>Predictions Report</h2>
-                        ${printOption === 'range' ? 
-                            `<div class="date-range">
-                                <p>Date Range: ${startDate} to ${endDate}</p>
-                            </div>` : ''}
-                            </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>User</th>
-                                <th>Date</th>
-                                <th>Risk Level</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableData.map((row, index) => `
-                                <tr>
-                                    <td>${index + 1}</td>
-                                    <td>${row[1]}</td>
-                                    <td>${row[2]}</td>
-                                    <td>${row[3]}</td>
-                                </tr>
-                    `).join('')}
-                        </tbody>
-                    </table>
-                </body>
-                </html>
-            `;
-
-            var printWindow = window.open('', '_blank');
-            printWindow.document.write(printContent);
-            printWindow.document.close();
-            printWindow.print();
-        });
-
+          })
+      
+          var printContent = `
+                      <html>
+                      <head>
+                          <title>Predictions Report</title>
+                          <style>
+                              body { font-family: Arial, sans-serif; }
+                              .prediction-page {
+                                  page-break-after: always;
+                                  padding: 20px;
+                                  margin-bottom: 20px;
+                              }
+                              .prediction-page:last-child {
+                                  page-break-after: avoid;
+                              }
+                              .header { text-align: center; margin-bottom: 20px; }
+                              .prediction-info { margin-bottom: 20px; }
+                              .prediction-info p { margin: 5px 0; }
+                              .badge { padding: 5px 10px; border-radius: 4px; }
+                              .bg-danger { background-color: #dc3545; color: white; }
+                              .bg-warning { background-color: #ffc107; color: black; }
+                              .bg-success { background-color: #28a745; color: white; }
+                              .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                              .model-predictions, .input-data { margin-bottom: 20px; }
+                              .list-group-item { border: 1px solid #ddd; padding: 8px; margin-bottom: 5px; }
+                              .page-number { text-align: center; margin-top: 10px; font-size: 12px; color: #666; }
+                              .date-range { text-align: center; margin-bottom: 20px; font-style: italic; }
+                          </style>
+                      </head>
+                      <body>
+                                  <div class="header">
+                              <h2>Predictions Report</h2>
+                              ${
+                                printOption === 'range'
+                                  ? `<div class="date-range">
+                                      <p>Date Range: ${startDate} to ${endDate}</p>
+                                  </div>`
+                                  : ''
+                              }
+                                  </div>
+                          <table>
+                              <thead>
+                                  <tr>
+                                      <th>No</th>
+                                      <th>User</th>
+                                      <th>Date</th>
+                                      <th>Risk Level</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  ${tableData
+                                    .map(
+                                      (row, index) => `
+                                      <tr>
+                                          <td>${index + 1}</td>
+                                          <td>${row[1]}</td>
+                                          <td>${row[2]}</td>
+                                          <td>${row[3]}</td>
+                                      </tr>
+                          `
+                                    )
+                                    .join('')}
+                              </tbody>
+                          </table>
+                      </body>
+                      </html>
+                  `
+      
+          var printWindow = window.open('', '_blank')
+          printWindow.document.write(printContent)
+          printWindow.document.close()
+          printWindow.print()
+        })
+      
         // Handle export button click
-        $('#exportButton').click(function() {
-            var format = $('#exportFormat').val();
-            var exportOption = $('input[name="exportOption"]:checked').val();
-            var startDate = $('#exportStartDate').val();
-            var endDate = $('#exportEndDate').val();
-
-            if (exportOption === 'range' && (!startDate || !endDate)) {
-                alert('Please select both start and end dates');
-                return;
-            }
-
-            // Redirect to export route with parameters
-            var url = `/admin/predictions/export/${format}?`;
-            if (exportOption === 'range') {
-                url += `start_date=${startDate}&end_date=${endDate}`;
-            }
-            window.location.href = url;
-        });
-    });
-</script>
+        $('#exportButton').click(function () {
+          var format = $('#exportFormat').val()
+          var exportOption = $('input[name="exportOption"]:checked').val()
+          var startDate = $('#exportStartDate').val()
+          var endDate = $('#exportEndDate').val()
+      
+          if (exportOption === 'range' && (!startDate || !endDate)) {
+            alert('Please select both start and end dates')
+            return
+          }
+      
+          // Redirect to export route with parameters
+          var url = `/admin/predictions/export/${format}?`
+          if (exportOption === 'range') {
+            url += `start_date=${startDate}&end_date=${endDate}`
+          }
+          window.location.href = url
+        })
+      })
+    </script>
+  {% endblock %}
 {% endblock %}
-{% endblock %} 

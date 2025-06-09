@@ -63,19 +63,25 @@
             <h6>Decision Tree</h6>
             <div class="progress mb-1"><div class="progress-bar" role="progressbar" style="width: 0%"></div></div>
             <span class="percentage">0%</span>
-            <p class="risk-text small text-muted"></p>
+            <p class="risk-text small text-muted">
+              <span class="badge bg-secondary">No prediction yet</span>
+            </p>
           </div>
           <div class="result-item mb-4">
             <h6>Random Forest</h6>
             <div class="progress mb-1"><div class="progress-bar" role="progressbar" style="width: 0%"></div></div>
             <span class="percentage">0%</span>
-            <p class="risk-text small text-muted"></p>
+            <p class="risk-text small text-muted">
+              <span class="badge bg-secondary">No prediction yet</span>
+            </p>
           </div>
           <div class="result-item mb-4">
             <h6>XGBoost</h6>
             <div class="progress mb-1"><div class="progress-bar" role="progressbar" style="width: 0%"></div></div>
             <span class="percentage">0%</span>
-            <p class="risk-text small text-muted"></p>
+            <p class="risk-text small text-muted">
+              <span class="badge bg-secondary">No prediction yet</span>
+            </p>
           </div>
         </div>
       </div>
@@ -139,10 +145,27 @@
         const progressBar = result.querySelector('.progress-bar');
         const percentageText = result.querySelector('.percentage');
         const riskText = result.querySelector('.risk-text');
+        const riskLevel = data[risks[index]];
 
         progressBar.style.width = `${percentage}%`;
         percentageText.textContent = `${percentage}%`;
-        riskText.textContent = data[risks[index]];
+        
+        // Update risk level badge
+        let badgeClass = 'bg-secondary';
+        let riskLabel = 'Unknown';
+        
+        if (riskLevel.includes('tinggi')) {
+          badgeClass = 'bg-danger';
+          riskLabel = 'High';
+        } else if (riskLevel.includes('sedang')) {
+          badgeClass = 'bg-warning';
+          riskLabel = 'Medium';
+        } else if (riskLevel.includes('rendah')) {
+          badgeClass = 'bg-success';
+          riskLabel = 'Low';
+        }
+        
+        riskText.innerHTML = `<span class="badge ${badgeClass}">${riskLabel}</span>`;
 
         if (percentage < 30) {
           progressBar.className = 'progress-bar bg-success';
