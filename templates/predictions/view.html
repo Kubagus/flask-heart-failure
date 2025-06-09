@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Detail Prediksi</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Hasil Prediksi</h5>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6>Decision Tree</h6>
+                            <p class="mb-0">
+                                <span class="badge {% if prediction['decision_tree_risk'] == 'High' %}bg-danger{% else %}bg-success{% endif %}">
+                                    {{ prediction['decision_tree_risk'] }}
+                                </span>
+                                <br>
+                                Probabilitas: {{ "%.2f"|format(prediction['decision_tree'] * 100) }}%
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6>Random Forest</h6>
+                            <p class="mb-0">
+                                <span class="badge {% if prediction['random_forest_risk'] == 'High' %}bg-danger{% else %}bg-success{% endif %}">
+                                    {{ prediction['random_forest_risk'] }}
+                                </span>
+                                <br>
+                                Probabilitas: {{ "%.2f"|format(prediction['random_forest'] * 100) }}%
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6>XGBoost</h6>
+                            <p class="mb-0">
+                                <span class="badge {% if prediction['xgboost_risk'] == 'High' %}bg-danger{% else %}bg-success{% endif %}">
+                                    {{ prediction['xgboost_risk'] }}
+                                </span>
+                                <br>
+                                Probabilitas: {{ "%.2f"|format(prediction['xgboost'] * 100) }}%
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="card-title">Data Pasien</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Tanggal Prediksi:</strong> {{ prediction['created_at'] }}</p>
+                    <p><strong>Usia:</strong> {{ prediction['age'] }}</p>
+                    <p><strong>Jenis Kelamin:</strong> {{ 'Laki-laki' if prediction['sex'] == 'M' else 'Perempuan' }}</p>
+                    <p><strong>Tipe Nyeri Dada:</strong> {{ prediction['chestpaintype'] }}</p>
+                    <p><strong>Tekanan Darah Istirahat:</strong> {{ prediction['restingbp'] }}</p>
+                    <p><strong>Kolesterol:</strong> {{ prediction['cholesterol'] }}</p>
+                    <p><strong>Gula Darah Puasa:</strong> {{ prediction['fastingbs'] }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>ECG Istirahat:</strong> {{ prediction['restingecg'] }}</p>
+                    <p><strong>Detak Jantung Maksimum:</strong> {{ prediction['maxhr'] }}</p>
+                    <p><strong>Angina Saat Olahraga:</strong> {{ 'Ya' if prediction['exerciseangina'] == 'Y' else 'Tidak' }}</p>
+                    <p><strong>Oldpeak:</strong> {{ prediction['oldpeak'] }}</p>
+                    <p><strong>ST Slope:</strong> {{ prediction['stslope'] }}</p>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="{{ url_for('prediction.edit_prediction', id=prediction['id']) }}" class="btn btn-warning">Edit</a>
+                <a href="{{ url_for('prediction.list_predictions') }}" class="btn btn-secondary">Kembali ke Daftar</a>
+                <form action="{{ url_for('prediction.delete_prediction', id=prediction['id']) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus prediksi ini?')">Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

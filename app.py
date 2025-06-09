@@ -12,6 +12,7 @@ from flask_wtf.csrf import CSRFProtect
 from routes.main import main
 from routes.authRoutes import authRoutes
 from routes.adminRoute import adminRoute
+from routes.prediction_routes import prediction_bp
 from db.database import init_db, get_db_connection
 from auth.middleware import login_required, admin_required
 from routes.loadModel import loadModel
@@ -40,6 +41,7 @@ def fromjson_filter(value):
 loadModel(app)
 
 app.register_blueprint(predict_bp)
+app.register_blueprint(prediction_bp)
 
 # Initialize routes
 main(app)

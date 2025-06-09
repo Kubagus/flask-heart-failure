@@ -213,49 +213,25 @@ def adminRoute(app):
                 mimetype='application/pdf'
             )
 
-    @app.route('/admin/predictions/edit/<int:prediction_id>', methods=['POST'])
-    @admin_required
-    def edit_prediction(prediction_id):
-        conn = get_db_connection()
-        try:
-            prediction = conn.execute('SELECT * FROM predictions WHERE id = ?', (prediction_id,)).fetchone()
-            if not prediction:
-                flash('Prediction not found', 'danger')
-                return redirect(url_for('admin_predictions'))
-
-            result = request.form.get('result')
-            result_data = request.form.get('result_data')
-
-            conn.execute(
-                'UPDATE predictions SET result = ?, result_data = ? WHERE id = ?',
-                (result, result_data, prediction_id)
-            )
-            conn.commit()
-            flash('Prediction updated successfully', 'success')
-        except Exception as e:
-            flash(f'Error updating prediction: {str(e)}', 'danger')
-        finally:
-            conn.close()
-        return redirect(url_for('admin_predictions'))
-
     @app.route('/admin/predictions/delete/<int:prediction_id>', methods=['POST'])
     @admin_required
-    def delete_prediction(prediction_id):
+    def delete_prediction_admin(prediction_id):
         conn = get_db_connection()
         try:
             # Check if prediction exists
             prediction = conn.execute('SELECT * FROM predictions WHERE id = ?', (prediction_id,)).fetchone()
             if not prediction:
-                flash('Prediction not found', 'danger')
+                flash('Prediksi tidak ditemukan', 'danger')
                 return redirect(url_for('admin_predictions'))
 
-            # Delete the prediction and its associated risk data
+            # Delete from risk_by_algorithm first due to foreign key constraint
             conn.execute('DELETE FROM risk_by_algorithm WHERE prediction_id = ?', (prediction_id,))
+            # Then delete from predictions
             conn.execute('DELETE FROM predictions WHERE id = ?', (prediction_id,))
             conn.commit()
-            flash('Prediction deleted successfully', 'success')
+            flash('Prediksi berhasil dihapus', 'success')
         except Exception as e:
-            flash(f'Error deleting prediction: {str(e)}', 'danger')
+            flash(f'Gagal menghapus prediksi: {str(e)}', 'danger')
         finally:
             conn.close()
         return redirect(url_for('admin_predictions'))
