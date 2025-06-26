@@ -27,6 +27,23 @@ def adminRoute(app):
             # Get total predictions
             total_predictions = conn.execute('SELECT COUNT(*) FROM predictions').fetchone()[0]
             
+            # Get high risk predictions (any model risk is 'Risiko tinggi terkena gagal jantung')
+            high_risk_predictions = conn.execute('''
+                SELECT COUNT(*) FROM risk_by_algorithm 
+                WHERE decision_tree_risk = ? OR random_forest_risk = ? OR xgboost_risk = ?
+            ''', (
+                'Risiko tinggi terkena gagal jantung',
+                'Risiko tinggi terkena gagal jantung',
+                'Risiko tinggi terkena gagal jantung',
+            )).fetchone()[0]
+
+            # Get today's predictions
+            today_str = datetime.now().strftime('%Y-%m-%d')
+            today_predictions = conn.execute('''
+                SELECT COUNT(*) FROM predictions 
+                WHERE DATE(created_at) = DATE(?)
+            ''', (today_str,)).fetchone()[0]
+
             # Get recent predictions with user info
             recent_predictions = conn.execute(
                 """SELECT p.*, u.username, u.full_name, r.* 
@@ -39,6 +56,8 @@ def adminRoute(app):
             return render_template('admin/dashboard.html',
                                 total_users=total_users,
                                 total_predictions=total_predictions,
+                                high_risk_predictions=high_risk_predictions,
+                                today_predictions=today_predictions,
                                 recent_predictions=recent_predictions)
         finally:
             conn.close()

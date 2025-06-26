@@ -64,7 +64,7 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, name, hasil):
 hasil_sesudah = []
 
 dt_model = evaluate_model(
-    DecisionTreeClassifier(max_depth=10, random_state=42),
+    DecisionTreeClassifier(max_depth=5, random_state=42),
     X_train_res, y_train_res, X_test_scaled, y_test,
     'Decision Tree (After)', hasil_sesudah)
 
@@ -74,7 +74,7 @@ rf_model = evaluate_model(
     'Random Forest (After)', hasil_sesudah)
 
 xgb_model = evaluate_model(
-    xgb.XGBClassifier(eval_metric='logloss', random_state=42, max_depth=10, n_estimators=100, learning_rate=0.1),
+    xgb.XGBClassifier(eval_metric='logloss', random_state=42, max_depth=10, n_estimators=100, learning_rate=0.1, scale_pos_weight=0.89),
     X_train_res, y_train_res, X_test_scaled, y_test,
     'XGBoost (After)', hasil_sesudah)
 
