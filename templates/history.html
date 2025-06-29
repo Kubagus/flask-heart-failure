@@ -185,17 +185,17 @@
 {% block scripts %}
 <script>
 $(document).ready(function () {
-    // Initialize DataTable
-    $('#historyTable').DataTable({
+        // Initialize DataTable
+        $('#historyTable').DataTable({
         order: [[1, 'desc']],
         columnDefs: [{ orderable: false, targets: [0, 3] }]
-    });
+        });
 
-    // Handle print option change
+        // Handle print option change
     $('input[name="printOption"]').change(function () {
         if ($(this).val() === 'range') {
             $('#dateRangeInputs').show();
-        } else {
+            } else {
             $('#dateRangeInputs').hide();
         }
     });
@@ -208,8 +208,8 @@ $(document).ready(function () {
 
         if (printOption === 'range' && (!startDate || !endDate)) {
             alert('Please select both start and end dates');
-            return;
-        }
+                    return;
+                }
 
         var table = $('#historyTable').DataTable();
         var tableData = [];
@@ -277,8 +277,8 @@ $(document).ready(function () {
         printWindow.document.write(printContent);
         printWindow.document.close();
         printWindow.print();
+        });
     });
-});
 </script>
 {% endblock %}
 {% endblock %} 
