@@ -30,6 +30,9 @@ def main(app):
     @login_required
     def history():
         conn = get_db_connection()
+        # Get user info from database
+        user = conn.execute('SELECT full_name FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+        
         # Get predictions for the current user
         predictions = conn.execute(
             """SELECT p.*, r.* 
@@ -76,7 +79,7 @@ def main(app):
             }
             processed_predictions.append(processed_pred)
         
-        return render_template('history.html', predictions=processed_predictions)
+        return render_template('history.html', predictions=processed_predictions, user_full_name=user['full_name'])
 
     @app.route('/print_user_history')
     def print_user_history():

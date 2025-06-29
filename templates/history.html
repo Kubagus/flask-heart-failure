@@ -255,7 +255,7 @@ $(document).ready(function () {
             <body>
                 <div class="header">
                     <h2>Prediction History Report</h2>
-                    <h4>Patient: {{ session.full_name }}</h4>
+                    <h4>Patient: {{ user_full_name }}</h4>
                     ${printOption === 'range' ? `<div class="date-range"><p>Date Range: ${startDate} to ${endDate}</p></div>` : ''}
                 </div>
                 <table>
