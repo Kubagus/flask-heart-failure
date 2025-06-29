@@ -194,18 +194,37 @@
 <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
+// Store prediction data globally
+var predictionData = {
+    {% for pred in predictions %}
+    {{ pred.id }}: {
+        age: '{{ pred.data.age }}',
+        sex: '{{ pred.data.sex }}',
+        chestpaintype: '{{ pred.data.chestpaintype }}',
+        restingbp: '{{ pred.data.restingbp }}',
+        cholesterol: '{{ pred.data.cholesterol }}',
+        fastingbs: '{{ pred.data.fastingbs }}',
+        restingecg: '{{ pred.data.restingecg }}',
+        maxhr: '{{ pred.data.maxhr }}',
+        exerciseangina: '{{ pred.data.exerciseangina }}',
+        oldpeak: '{{ pred.data.oldpeak }}',
+        stslope: '{{ pred.data.stslope }}'
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
 $(document).ready(function () {
-    // Initialize DataTable
-    $('#historyTable').DataTable({
+        // Initialize DataTable
+        $('#historyTable').DataTable({
         order: [[1, 'desc']],
         columnDefs: [{ orderable: false, targets: [0, 3] }]
-    });
+        });
 
-    // Handle print option change
+        // Handle print option change
     $('input[name="printOption"]').change(function () {
         if ($(this).val() === 'range') {
             $('#dateRangeInputs').show();
-        } else {
+            } else {
             $('#dateRangeInputs').hide();
         }
     });
@@ -223,17 +242,92 @@ $(document).ready(function () {
 
         var table = $('#historyTable').DataTable();
         var tableData = [];
+        var selectedPredictions = [];
 
         // Get all rows from DataTable
         table.rows().every(function () {
             var data = this.data();
-            var rowDate = new Date(data[1]); // Date column
+            var rowDateStr = data[1].slice(0, 10); // Ambil 'YYYY-MM-DD'
             var riskLevelText = $(data[2]).text().trim();
 
-            if (printOption === 'all' || (printOption === 'range' && rowDate >= new Date(startDate) && rowDate <= new Date(endDate))) {
+            if (
+                printOption === 'all' ||
+                (printOption === 'range' && rowDateStr >= startDate && rowDateStr <= endDate)
+            ) {
                 tableData.push([data[0], data[1], riskLevelText]);
+                
+                // Get prediction ID from the row (we'll use the row index to find the prediction)
+                var rowIndex = this.index();
+                var predictionId = {{ predictions|map(attribute='id')|list|tojson }};
+                if (predictionId[rowIndex]) {
+                    selectedPredictions.push({
+                        id: predictionId[rowIndex],
+                        date: data[1],
+                        data: predictionData[predictionId[rowIndex]]
+                    });
+                }
             }
         });
+
+        var inputDataSection = '';
+        if (selectedPredictions.length > 0) {
+            inputDataSection = `
+                <div class="input-data">
+                    <h3>Detailed Input Data</h3>
+                    ${selectedPredictions.map((pred, index) => `
+                        <div style="margin-bottom: 30px; border: 2px solid #ddd; padding: 15px;">
+                            <h4>Prediction #${index + 1} - ${pred.date}</h4>
+                            <div class="input-grid">
+                                <div class="input-item">
+                                    <div class="input-label">Age:</div>
+                                    <div class="input-value">${pred.data.age}</div>
+                                </div>
+                                <div class="input-item">
+                                    <div class="input-label">Sex:</div>
+                                    <div class="input-value">${pred.data.sex}</div>
+                                </div>
+                                <div class="input-item">
+                                    <div class="input-label">Chest Pain Type:</div>
+                                    <div class="input-value">${pred.data.chestpaintype}</div>
+                                </div>
+                                <div class="input-item">
+                                    <div class="input-label">Resting BP:</div>
+                                    <div class="input-value">${pred.data.restingbp}</div>
+                                </div>
+                                <div class="input-item">
+                                    <div class="input-label">Cholesterol:</div>
+                                    <div class="input-value">${pred.data.cholesterol}</div>
+                                </div>
+                                <div class="input-item">
+                                    <div class="input-label">Fasting BS:</div>
+                                    <div class="input-value">${pred.data.fastingbs}</div>
+                                </div>
+                                <div class="input-item">
+                                    <div class="input-label">Resting ECG:</div>
+                                    <div class="input-value">${pred.data.restingecg}</div>
+                                </div>
+                                <div class="input-item">
+                                    <div class="input-label">Max HR:</div>
+                                    <div class="input-value">${pred.data.maxhr}</div>
+                                </div>
+                                <div class="input-item">
+                                    <div class="input-label">Exercise Angina:</div>
+                                    <div class="input-value">${pred.data.exerciseangina}</div>
+                                </div>
+                                <div class="input-item">
+                                    <div class="input-label">Old Peak:</div>
+                                    <div class="input-value">${pred.data.oldpeak}</div>
+                                </div>
+                                <div class="input-item">
+                                    <div class="input-label">ST Slope:</div>
+                                    <div class="input-value">${pred.data.stslope}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
 
         var printContent = `
             <html>
@@ -250,6 +344,12 @@ $(document).ready(function () {
                     .bg-danger { background-color: #dc3545; color: white; }
                     .bg-warning { background-color: #ffc107; color: black; }
                     .bg-success { background-color: #28a745; color: white; }
+                    .input-data { margin-top: 30px; }
+                    .input-data h3 { margin-bottom: 15px; }
+                    .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+                    .input-item { border: 1px solid #ddd; padding: 10px; background-color: #f9f9f9; }
+                    .input-label { font-weight: bold; color: #333; }
+                    .input-value { color: #666; }
                 </style>
             </head>
             <body>
@@ -280,6 +380,8 @@ $(document).ready(function () {
                             .join('')}
                     </tbody>
                 </table>
+                
+                ${inputDataSection}
             </body>
             </html>
         `;
@@ -288,7 +390,7 @@ $(document).ready(function () {
         printWindow.document.write(printContent);
         printWindow.document.close();
         printWindow.print();
+        });
     });
-});
 </script>
 {% endblock %} 
