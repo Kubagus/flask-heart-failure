@@ -154,22 +154,33 @@ def adminRoute(app):
     def export_predictions(format):
         predictions = get_user_predictions()
         data = []
-        
+        # Hanya ambil data input
         for pred in predictions:
             pred_data = dict(pred)
-            pred_data['prediction_data'] = json.loads(pred_data['prediction_data'])
-            pred_data['prediction_result'] = json.loads(pred_data['prediction_result'])
-            data.append(pred_data)
+            row = {
+                'age': pred_data.get('age', ''),
+                'sex': pred_data.get('sex', ''),
+                'chestpaintype': pred_data.get('chestpaintype', ''),
+                'restingbp': pred_data.get('restingbp', ''),
+                'cholesterol': pred_data.get('cholesterol', ''),
+                'fastingbs': pred_data.get('fastingbs', ''),
+                'restingecg': pred_data.get('restingecg', ''),
+                'maxhr': pred_data.get('maxhr', ''),
+                'exerciseangina': pred_data.get('exerciseangina', ''),
+                'oldpeak': pred_data.get('oldpeak', ''),
+                'stslope': pred_data.get('stslope', '')
+            }
+            data.append(row)
 
-        if format == 'json':
-            return jsonify(data)
-        elif format == 'csv':
+        if format == 'csv':
             df = pd.DataFrame(data)
             csv_data = df.to_csv(index=False)
             return csv_data, 200, {
                 'Content-Type': 'text/csv',
-                'Content-Disposition': 'attachment; filename=predictions.csv'
+                'Content-Disposition': 'attachment; filename=predictions_input.csv'
             }
+        elif format == 'json':
+            return jsonify(data)
         elif format == 'pdf':
             # Create PDF
             buffer = io.BytesIO()
