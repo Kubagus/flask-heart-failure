@@ -2,6 +2,11 @@
 
 {% block title %}Prediction History - Prediksi Gagal Jantung{% endblock %}
 
+{% block extra_css %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -45,7 +50,7 @@
                                 <tbody>
                                     {% for pred in predictions %}
                                     <tr>
-                                        <td></td>
+                                        <td>{{ loop.index }}</td>
                                         <td>{{ pred.created_at }}</td>
                                         <td>
                                             <span class="badge {% if pred.risk_level == 'High' %}bg-danger{% elif pred.risk_level == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
@@ -181,21 +186,26 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
 {% block scripts %}
+<!-- DataTables JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
 $(document).ready(function () {
-        // Initialize DataTable
-        $('#historyTable').DataTable({
+    // Initialize DataTable
+    $('#historyTable').DataTable({
         order: [[1, 'desc']],
         columnDefs: [{ orderable: false, targets: [0, 3] }]
-        });
+    });
 
-        // Handle print option change
+    // Handle print option change
     $('input[name="printOption"]').change(function () {
         if ($(this).val() === 'range') {
             $('#dateRangeInputs').show();
-            } else {
+        } else {
             $('#dateRangeInputs').hide();
         }
     });
@@ -208,8 +218,8 @@ $(document).ready(function () {
 
         if (printOption === 'range' && (!startDate || !endDate)) {
             alert('Please select both start and end dates');
-                    return;
-                }
+            return;
+        }
 
         var table = $('#historyTable').DataTable();
         var tableData = [];
@@ -245,6 +255,7 @@ $(document).ready(function () {
             <body>
                 <div class="header">
                     <h2>Prediction History Report</h2>
+                    <h4>Patient: {{ session.full_name }}</h4>
                     ${printOption === 'range' ? `<div class="date-range"><p>Date Range: ${startDate} to ${endDate}</p></div>` : ''}
                 </div>
                 <table>
@@ -277,8 +288,7 @@ $(document).ready(function () {
         printWindow.document.write(printContent);
         printWindow.document.close();
         printWindow.print();
-        });
     });
+});
 </script>
-{% endblock %}
 {% endblock %} 
