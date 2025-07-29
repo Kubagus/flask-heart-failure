@@ -43,7 +43,8 @@
                                     <tr>
                                         <th>No</th>
                                         <th>Date</th>
-                                        <th>Risk Level</th>
+                                        <th>Hasil Random Forest</th>
+                                        <th>Keterangan</th>
                                         <th>Details</th>
                                     </tr>
                                 </thead>
@@ -53,10 +54,13 @@
                                         <td>{{ loop.index }}</td>
                                         <td>{{ pred.created_at }}</td>
                                         <td>
-                                            <span class="badge {% if pred.risk_level == 'High' %}bg-danger{% elif pred.risk_level == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
-                                                {{ pred.risk_level }}
-                                            </span>
+                                            {% if pred.rf_result == 'ya' %}
+                                                <span class="badge bg-danger">Ya, terkena risiko gagal jantung</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Tidak, rendah risiko gagal jantung</span>
+                                            {% endif %}
                                         </td>
+                                        <td>{{ pred.rf_keterangan }}</td>
                                         <td>
                                             <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detailsModal{{ pred.id }}">
                                                 <i class="fas fa-info-circle"></i> View Details
@@ -75,48 +79,34 @@
                                                 <div class="modal-body">
                                                     <div class="row">
                                                         <div class="col-md-6">
-                                                            <h6>Model Predictions:</h6>
+                                                            <h6>Hasil Random Forest:</h6>
                                                             <ul class="list-group">
                                                                 <li class="list-group-item">
-                                                                    <strong>Decision Tree:</strong>
-                                                                    <span class="badge {% if pred.result.decision_tree_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.result.decision_tree_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %} float-end">
-                                                                        {{ pred.result.decision_tree_risk }}
-                                                                    </span>
+                                                                    <strong>Hasil:</strong>
+                                                                    {% if pred.rf_result == 'ya' %}
+                                                                        <span class="badge bg-danger">Ya, terkena risiko gagal jantung</span>
+                                                                    {% else %}
+                                                                        <span class="badge bg-success">Tidak, rendah risiko gagal jantung</span>
+                                                                    {% endif %}
                                                                     <br>
-                                                                    <small>Probability: {{ pred.result.decision_tree }}%</small>
-                                                                </li>
-                                                                <li class="list-group-item">
-                                                                    <strong>Random Forest:</strong>
-                                                                    <span class="badge {% if pred.result.random_forest_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.result.random_forest_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %} float-end">
-                                                                        {{ pred.result.random_forest_risk }}
-                                                                    </span>
-                                                                    <br>
-                                                                    <small>Probability: {{ pred.result.random_forest }}%</small>
-                                                                </li>
-                                                                <li class="list-group-item">
-                                                                    <strong>XGBoost:</strong>
-                                                                    <span class="badge {% if pred.result.xgboost_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.result.xgboost_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %} float-end">
-                                                                        {{ pred.result.xgboost_risk }}
-                                                                    </span>
-                                                                    <br>
-                                                                    <small>Probability: {{ pred.result.xgboost }}%</small>
+                                                                    <small>{{ pred.rf_keterangan }}</small>
                                                                 </li>
                                                             </ul>
                                                         </div>
                                                         <div class="col-md-6">
                                                             <h6>Input Data:</h6>
                                                             <ul class="list-group">
-                                                                <li class="list-group-item"><strong>Age:</strong> {{ pred.data.age }}</li>
-                                                                <li class="list-group-item"><strong>Sex:</strong> {{ pred.data.sex }}</li>
-                                                                <li class="list-group-item"><strong>Chest Pain Type:</strong> {{ pred.data.chestpaintype }}</li>
-                                                                <li class="list-group-item"><strong>Resting BP:</strong> {{ pred.data.restingbp }}</li>
-                                                                <li class="list-group-item"><strong>Cholesterol:</strong> {{ pred.data.cholesterol }}</li>
-                                                                <li class="list-group-item"><strong>Fasting BS:</strong> {{ pred.data.fastingbs }}</li>
-                                                                <li class="list-group-item"><strong>Resting ECG:</strong> {{ pred.data.restingecg }}</li>
-                                                                <li class="list-group-item"><strong>Max HR:</strong> {{ pred.data.maxhr }}</li>
-                                                                <li class="list-group-item"><strong>Exercise Angina:</strong> {{ pred.data.exerciseangina }}</li>
-                                                                <li class="list-group-item"><strong>Old Peak:</strong> {{ pred.data.oldpeak }}</li>
-                                                                <li class="list-group-item"><strong>ST Slope:</strong> {{ pred.data.stslope }}</li>
+                                                                <li class="list-group-item"><strong>Usia:</strong> {{ pred.age }}</li>
+                                                                <li class="list-group-item"><strong>Jenis Kelamin:</strong> {{ pred.sex }}</li>
+                                                                <li class="list-group-item"><strong>Tipe Nyeri Dada:</strong> {{ pred.chestpaintype }}</li>
+                                                                <li class="list-group-item"><strong>Tekanan Darah Istirahat:</strong> {{ pred.restingbp }}</li>
+                                                                <li class="list-group-item"><strong>Kolesterol:</strong> {{ pred.cholesterol }}</li>
+                                                                <li class="list-group-item"><strong>Gula Darah Puasa:</strong> {{ pred.fastingbs }}</li>
+                                                                <li class="list-group-item"><strong>ECG Istirahat:</strong> {{ pred.restingecg }}</li>
+                                                                <li class="list-group-item"><strong>Detak Jantung Maksimum:</strong> {{ pred.maxhr }}</li>
+                                                                <li class="list-group-item"><strong>Angina Saat Olahraga:</strong> {{ pred.exerciseangina }}</li>
+                                                                <li class="list-group-item"><strong>Oldpeak:</strong> {{ pred.oldpeak }}</li>
+                                                                <li class="list-group-item"><strong>ST Slope:</strong> {{ pred.stslope }}</li>
                                                             </ul>
                                                         </div>
                                                     </div>
@@ -132,12 +122,7 @@
                             </table>
                         </div>
                     {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
-                            <h4>No Prediction History</h4>
-                            <p class="text-muted">You haven't made any predictions yet.</p>
-                            <a href="{{ url_for('prediksi') }}" class="btn btn-primary">Make Your First Prediction</a>
-                        </div>
+                        <div class="alert alert-info">Belum ada riwayat prediksi.</div>
                     {% endif %}
                 </div>
             </div>
@@ -198,17 +183,17 @@
 var predictionData = {
     {% for pred in predictions %}
     {{ pred.id }}: {
-        age: '{{ pred.data.age }}',
-        sex: '{{ pred.data.sex }}',
-        chestpaintype: '{{ pred.data.chestpaintype }}',
-        restingbp: '{{ pred.data.restingbp }}',
-        cholesterol: '{{ pred.data.cholesterol }}',
-        fastingbs: '{{ pred.data.fastingbs }}',
-        restingecg: '{{ pred.data.restingecg }}',
-        maxhr: '{{ pred.data.maxhr }}',
-        exerciseangina: '{{ pred.data.exerciseangina }}',
-        oldpeak: '{{ pred.data.oldpeak }}',
-        stslope: '{{ pred.data.stslope }}'
+        age: '{{ pred.age }}',
+        sex: '{{ pred.sex }}',
+        chestpaintype: '{{ pred.chestpaintype }}',
+        restingbp: '{{ pred.restingbp }}',
+        cholesterol: '{{ pred.cholesterol }}',
+        fastingbs: '{{ pred.fastingbs }}',
+        restingecg: '{{ pred.restingecg }}',
+        maxhr: '{{ pred.maxhr }}',
+        exerciseangina: '{{ pred.exerciseangina }}',
+        oldpeak: '{{ pred.oldpeak }}',
+        stslope: '{{ pred.stslope }}'
     }{% if not loop.last %},{% endif %}
     {% endfor %}
 };

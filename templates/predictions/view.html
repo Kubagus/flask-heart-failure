@@ -16,44 +16,16 @@
         <div class="card-body">
             <h5 class="card-title">Hasil Prediksi</h5>
             <div class="row mb-4">
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6>Decision Tree</h6>
-                            <p class="mb-0">
-                                <span class="badge {% if prediction['decision_tree_risk'] == 'High' %}bg-danger{% else %}bg-success{% endif %}">
-                                    {{ prediction['decision_tree_risk'] }}
-                                </span>
-                                <br>
-                                Probabilitas: {{ "%.2f"|format(prediction['decision_tree'] * 100) }}%
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
+                <div class="col-md-12">
                     <div class="card">
                         <div class="card-body">
                             <h6>Random Forest</h6>
                             <p class="mb-0">
-                                <span class="badge {% if prediction['random_forest_risk'] == 'High' %}bg-danger{% else %}bg-success{% endif %}">
-                                    {{ prediction['random_forest_risk'] }}
+                                <span class="badge {% if prediction['rf_result'] == 'ya' %}bg-danger{% else %}bg-success{% endif %}">
+                                    {% if prediction['rf_result'] == 'ya' %}Ya, terkena risiko gagal jantung{% else %}Tidak, rendah risiko gagal jantung{% endif %}
                                 </span>
                                 <br>
-                                Probabilitas: {{ "%.2f"|format(prediction['random_forest'] * 100) }}%
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6>XGBoost</h6>
-                            <p class="mb-0">
-                                <span class="badge {% if prediction['xgboost_risk'] == 'High' %}bg-danger{% else %}bg-success{% endif %}">
-                                    {{ prediction['xgboost_risk'] }}
-                                </span>
-                                <br>
-                                Probabilitas: {{ "%.2f"|format(prediction['xgboost'] * 100) }}%
+                                <small>{{ prediction['rf_keterangan'] }}</small>
                             </p>
                         </div>
                     </div>

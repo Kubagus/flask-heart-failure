@@ -40,15 +40,11 @@ def init_db():
     ''')
 
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS risk_by_algorithm (
+        CREATE TABLE IF NOT EXISTS rf_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             prediction_id INTEGER NOT NULL,
-            decision_tree REAL NOT NULL,
-            decision_tree_risk TEXT NOT NULL,
-            random_forest REAL NOT NULL,
-            random_forest_risk TEXT NOT NULL,
-            xgboost REAL NOT NULL,
-            xgboost_risk TEXT NOT NULL,
+            rf_result TEXT NOT NULL,
+            rf_keterangan TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (prediction_id) REFERENCES predictions (id)
         )
@@ -70,7 +66,7 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-def save_prediction(user_id, prediction_data, prediction_result):
+def save_prediction(user_id, prediction_data, rf_result, rf_keterangan):
     conn = get_db_connection()
     try:
         # Insert into predictions table
@@ -96,20 +92,15 @@ def save_prediction(user_id, prediction_data, prediction_result):
         )
         prediction_id = cursor.lastrowid
 
-        # Insert into risk_by_algorithm table
+        # Insert into rf_results table
         conn.execute(
-            """INSERT INTO risk_by_algorithm (
-                prediction_id, decision_tree, decision_tree_risk,
-                random_forest, random_forest_risk, xgboost, xgboost_risk
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO rf_results (
+                prediction_id, rf_result, rf_keterangan
+            ) VALUES (?, ?, ?)""",
             (
                 prediction_id,
-                prediction_result['decision_tree'],
-                prediction_result['decision_tree_risk'],
-                prediction_result['random_forest'],
-                prediction_result['random_forest_risk'],
-                prediction_result['xgboost'],
-                prediction_result['xgboost_risk']
+                rf_result,
+                rf_keterangan
             )
         )
         conn.commit()
@@ -123,32 +114,38 @@ def save_prediction(user_id, prediction_data, prediction_result):
 def get_user_predictions(user_id=None, start_date=None, end_date=None):
     conn = get_db_connection()
     try:
-        query = """SELECT p.*, u.username, u.full_name, r.* 
-                FROM predictions p 
-                JOIN users u ON p.user_id = u.id 
-                JOIN risk_by_algorithm r ON p.id = r.prediction_id 
+        query = """SELECT p.*, u.username, u.full_name, r.rf_result, r.rf_keterangan, r.created_at as rf_created_at \
+                FROM predictions p \
+                JOIN users u ON p.user_id = u.id \
+                JOIN rf_results r ON p.id = r.prediction_id \
                 """
         params = []
-
         conditions = []
         if user_id:
             conditions.append("p.user_id = ?")
             params.append(user_id)
-        
         if start_date:
             conditions.append("DATE(p.created_at) >= DATE(?)")
             params.append(start_date)
-        
         if end_date:
             conditions.append("DATE(p.created_at) <= DATE(?)")
             params.append(end_date)
-
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
-        
         query += " ORDER BY p.created_at DESC"
-
         predictions = conn.execute(query, tuple(params)).fetchall()
         return predictions
+    finally:
+        conn.close()
+
+def delete_rf_result(id):
+    conn = get_db_connection()
+    try:
+        conn.execute('DELETE FROM rf_results WHERE prediction_id = ?', (id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error deleting rf_result: {e}")
+        return False
     finally:
         conn.close()

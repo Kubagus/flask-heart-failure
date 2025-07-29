@@ -21,38 +21,24 @@ def adminRoute(app):
     def admin_dashboard():
         conn = get_db_connection()
         try:
-            # Get total users
             total_users = conn.execute('SELECT COUNT(*) FROM users WHERE role = ?', ('patient',)).fetchone()[0]
-            
-            # Get total predictions
             total_predictions = conn.execute('SELECT COUNT(*) FROM predictions').fetchone()[0]
-            
-            # Get high risk predictions (any model risk is 'Risiko tinggi terkena gagal jantung')
             high_risk_predictions = conn.execute('''
-                SELECT COUNT(*) FROM risk_by_algorithm 
-                WHERE decision_tree_risk = ? OR random_forest_risk = ? OR xgboost_risk = ?
-            ''', (
-                'Risiko tinggi terkena gagal jantung',
-                'Risiko tinggi terkena gagal jantung',
-                'Risiko tinggi terkena gagal jantung',
-            )).fetchone()[0]
-
-            # Get today's predictions
+                SELECT COUNT(*) FROM rf_results 
+                WHERE rf_result = 'ya'
+            ''').fetchone()[0]
             today_str = datetime.now().strftime('%Y-%m-%d')
             today_predictions = conn.execute('''
                 SELECT COUNT(*) FROM predictions 
                 WHERE DATE(created_at) = DATE(?)
             ''', (today_str,)).fetchone()[0]
-
-            # Get recent predictions with user info
             recent_predictions = conn.execute(
-                """SELECT p.*, u.username, u.full_name, r.* 
-                FROM predictions p 
-                JOIN users u ON p.user_id = u.id 
-                JOIN risk_by_algorithm r ON p.id = r.prediction_id 
+                """SELECT p.*, u.username, u.full_name, r.rf_result, r.rf_keterangan, r.created_at as rf_created_at \
+                FROM predictions p \
+                JOIN users u ON p.user_id = u.id \
+                JOIN rf_results r ON p.id = r.prediction_id \
                 ORDER BY p.created_at DESC LIMIT 5"""
             ).fetchall()
-
             return render_template('admin/dashboard.html',
                                 total_users=total_users,
                                 total_predictions=total_predictions,
@@ -264,15 +250,11 @@ def adminRoute(app):
     def delete_prediction_admin(prediction_id):
         conn = get_db_connection()
         try:
-            # Check if prediction exists
             prediction = conn.execute('SELECT * FROM predictions WHERE id = ?', (prediction_id,)).fetchone()
             if not prediction:
                 flash('Prediksi tidak ditemukan', 'danger')
                 return redirect(url_for('admin_predictions'))
-
-            # Delete from risk_by_algorithm first due to foreign key constraint
-            conn.execute('DELETE FROM risk_by_algorithm WHERE prediction_id = ?', (prediction_id,))
-            # Then delete from predictions
+            conn.execute('DELETE FROM rf_results WHERE prediction_id = ?', (prediction_id,))
             conn.execute('DELETE FROM predictions WHERE id = ?', (prediction_id,))
             conn.commit()
             flash('Prediksi berhasil dihapus', 'success')

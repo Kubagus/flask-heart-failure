@@ -104,7 +104,7 @@
                                     <td>{{ pred.full_name }}</td>
                                     <td>{{ pred.created_at }}</td>
                                     <td>
-                                        <button type="button" class="btn btn-sm btn-{{ 'success' if pred.decision_tree_risk == 'Low' else 'warning' if pred.decision_tree_risk == 'Medium' else 'danger' }}" 
+                                        <button type="button" class="btn btn-sm btn-{{ 'danger' if pred.rf_result == 'ya' else 'success' }}" 
                                                 data-bs-toggle="modal" data-bs-target="#resultModal{{ pred.id }}">
                                             <i class="fas fa-chart-bar"></i> View Results
                                         </button>
@@ -205,37 +205,19 @@
                         <thead>
                             <tr>
                                 <th>Model</th>
-                                <th>Probability</th>
-                                <th>Risk Level</th>
+                                <th>Result</th>
+                                <th>Keterangan</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Decision Tree</td>
-                                <td>{{ pred.decision_tree }}%</td>
-                                <td>
-                                    <span class="badge {% if pred.decision_tree_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.decision_tree_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
-                                        {{ pred.decision_tree_risk }}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
                                 <td>Random Forest</td>
-                                <td>{{ pred.random_forest }}%</td>
                                 <td>
-                                    <span class="badge {% if pred.random_forest_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.random_forest_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
-                                        {{ pred.random_forest_risk }}
+                                    <span class="badge {% if pred.rf_result == 'ya' %}bg-danger{% else %}bg-success{% endif %}">
+                                        {% if pred.rf_result == 'ya' %}Ya, terkena risiko gagal jantung{% else %}Tidak, rendah risiko gagal jantung{% endif %}
                                     </span>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>XGBoost</td>
-                                <td>{{ pred.xgboost }}%</td>
-                                <td>
-                                    <span class="badge {% if pred.xgboost_risk == 'Risiko tinggi terkena gagal jantung' %}bg-danger{% elif pred.xgboost_risk == 'Risiko sedang terkena gagal jantung' %}bg-warning{% else %}bg-success{% endif %}">
-                                        {{ pred.xgboost_risk }}
-                                    </span>
-                                </td>
+                                <td>{{ pred.rf_keterangan }}</td>
                             </tr>
                         </tbody>
                     </table>

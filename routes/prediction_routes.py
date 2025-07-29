@@ -21,18 +21,16 @@ def view_prediction(id):
     conn = get_db_connection()
     try:
         prediction = conn.execute(
-            """SELECT p.*, u.username, u.full_name, r.* 
-            FROM predictions p 
-            JOIN users u ON p.user_id = u.id 
-            JOIN risk_by_algorithm r ON p.id = r.prediction_id 
+            """SELECT p.*, u.username, u.full_name, r.rf_result, r.rf_keterangan, r.created_at as rf_created_at \
+            FROM predictions p \
+            JOIN users u ON p.user_id = u.id \
+            JOIN rf_results r ON p.id = r.prediction_id \
             WHERE p.id = ? AND p.user_id = ?""",
             (id, session.get('user_id'))
         ).fetchone()
-        
         if not prediction:
             flash('Prediksi tidak ditemukan', 'error')
             return redirect(url_for('prediction.list_predictions'))
-            
         return render_template('predictions/view.html', prediction=prediction)
     finally:
         conn.close()
@@ -42,20 +40,17 @@ def view_prediction(id):
 def edit_prediction(id):
     conn = get_db_connection()
     try:
-        # Check if prediction exists and belongs to user
         prediction = conn.execute(
-            """SELECT p.*, u.username, u.full_name, r.* 
-            FROM predictions p 
-            JOIN users u ON p.user_id = u.id 
-            JOIN risk_by_algorithm r ON p.id = r.prediction_id 
+            """SELECT p.*, u.username, u.full_name, r.rf_result, r.rf_keterangan, r.created_at as rf_created_at \
+            FROM predictions p \
+            JOIN users u ON p.user_id = u.id \
+            JOIN rf_results r ON p.id = r.prediction_id \
             WHERE p.id = ? AND p.user_id = ?""",
             (id, session.get('user_id'))
         ).fetchone()
-        
         if not prediction:
             flash('Prediksi tidak ditemukan', 'error')
             return redirect(url_for('prediction.list_predictions'))
-
         if request.method == 'POST':
             try:
                 conn.execute(
@@ -85,7 +80,6 @@ def edit_prediction(id):
                 return redirect(url_for('prediction.view_prediction', id=id))
             except Exception as e:
                 flash(f'Gagal memperbarui prediksi: {str(e)}', 'error')
-        
         return render_template('predictions/edit.html', prediction=prediction)
     finally:
         conn.close()
@@ -95,18 +89,15 @@ def edit_prediction(id):
 def delete_prediction(id):
     conn = get_db_connection()
     try:
-        # Check if prediction exists and belongs to user
         prediction = conn.execute(
             'SELECT * FROM predictions WHERE id = ? AND user_id = ?',
             (id, session.get('user_id'))
         ).fetchone()
-        
         if not prediction:
             flash('Prediksi tidak ditemukan', 'error')
             return redirect(url_for('prediction.list_predictions'))
-
-        # Delete from risk_by_algorithm first due to foreign key constraint
-        conn.execute('DELETE FROM risk_by_algorithm WHERE prediction_id = ?', (id,))
+        # Delete from rf_results first due to foreign key constraint
+        conn.execute('DELETE FROM rf_results WHERE prediction_id = ?', (id,))
         # Then delete from predictions
         conn.execute('DELETE FROM predictions WHERE id = ? AND user_id = ?', (id, session.get('user_id')))
         conn.commit()
@@ -115,5 +106,4 @@ def delete_prediction(id):
         flash(f'Gagal menghapus prediksi: {str(e)}', 'error')
     finally:
         conn.close()
-    
     return redirect(url_for('prediction.list_predictions')) 

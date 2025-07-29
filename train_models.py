@@ -5,11 +5,9 @@ import joblib
 import warnings
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from imblearn.combine import SMOTEENN
-import xgboost as xgb
 
 warnings.filterwarnings('ignore')
 
@@ -63,27 +61,15 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, name, hasil):
 # Evaluasi model
 hasil_sesudah = []
 
-dt_model = evaluate_model(
-    DecisionTreeClassifier(max_depth=5, random_state=42),
-    X_train_res, y_train_res, X_test_scaled, y_test,
-    'Decision Tree (After)', hasil_sesudah)
-
 rf_model = evaluate_model(
     RandomForestClassifier(n_estimators=100, max_depth=40, random_state=42, min_samples_split=4),
     X_train_res, y_train_res, X_test_scaled, y_test,
     'Random Forest (After)', hasil_sesudah)
 
-xgb_model = evaluate_model(
-    xgb.XGBClassifier(eval_metric='logloss', random_state=42, max_depth=10, n_estimators=100, learning_rate=0.1, scale_pos_weight=0.89),
-    X_train_res, y_train_res, X_test_scaled, y_test,
-    'XGBoost (After)', hasil_sesudah)
-
 # Simpan model dan scaler
 saved_models = {
     'scaler': scaler,
-    'rf_model': rf_model,
-    'dt_model': dt_model,
-    'xgb_model': xgb_model
+    'rf_model': rf_model
 }
 
 if not os.path.exists('models'):
@@ -93,6 +79,6 @@ joblib.dump(saved_models, 'models/models_and_scaler_smoteenn.pkl')
 
 # Tampilkan hasil evaluasi
 df_hasil = pd.DataFrame(hasil_sesudah)
-print("\n=== Kinerja Model Sesudah SMOTEENN ===")
+print("\n=== Kinerja Model Random Forest Sesudah SMOTEENN ===")
 print(df_hasil.sort_values(by='Model').reset_index(drop=True))
-print("✅ Semua model dan scaler telah disimpan ke 'models/models_and_scaler_smoteenn.pkl'.")
+print("✅ Model Random Forest dan scaler telah disimpan ke 'models/models_and_scaler_smoteenn.pkl'.")
