@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Detail Prediksi</h2>
+    <h2>Detail Klasifikasi</h2>
     
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -14,7 +14,7 @@
 
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Hasil Prediksi</h5>
+            <h5 class="card-title">Hasil Klasifikasi</h5>
             <div class="row mb-4">
                 <div class="col-md-12">
                     <div class="card">
@@ -35,7 +35,7 @@
             <h5 class="card-title">Data Pasien</h5>
             <div class="row">
                 <div class="col-md-6">
-                    <p><strong>Tanggal Prediksi:</strong> {{ prediction['created_at'] }}</p>
+                    <p><strong>Tanggal klasifikasi:</strong> {{ prediction['created_at'] }}</p>
                     <p><strong>Usia:</strong> {{ prediction['age'] }}</p>
                     <p><strong>Jenis Kelamin:</strong> {{ 'Laki-laki' if prediction['sex'] == 'M' else 'Perempuan' }}</p>
                     <p><strong>Tipe Nyeri Dada:</strong> {{ prediction['chestpaintype'] }}</p>
@@ -56,7 +56,7 @@
                 <a href="{{ url_for('prediction.edit_prediction', id=prediction['id']) }}" class="btn btn-warning">Edit</a>
                 <a href="{{ url_for('prediction.list_predictions') }}" class="btn btn-secondary">Kembali ke Daftar</a>
                 <form action="{{ url_for('prediction.delete_prediction', id=prediction['id']) }}" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus prediksi ini?')">Hapus</button>
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus hasil ini?')">Hapus</button>
                 </form>
             </div>
         </div>

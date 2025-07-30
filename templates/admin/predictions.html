@@ -13,9 +13,10 @@
           <h1 class="h2">Predictions</h1>
           <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group me-2">
-              <a href="{{ url_for('prediksi') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Buat Prediksi Baru</a>
+              <a href="{{ url_for('prediksi') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Buat Klasifikasi</a>
               {% if predictions %}
                 <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fas fa-print"></i> Print</button>
+                {# <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal"><i class="fas fa-file-export"></i> Export</button> #}
               {% endif %}
             </div>
           </div>
@@ -65,6 +66,7 @@
                         </td>
                         <td>
                           <div class="btn-group" role="group">
+                              
                               <form action="{{ url_for('delete_prediction_admin', prediction_id=pred.id) }}" method="POST" class="d-inline">
                                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                   <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus prediksi ini?')" title="Hapus">
@@ -93,7 +95,7 @@
                                       <span class="badge {% if pred.rf_result == 'ya' %}bg-danger{% else %}bg-success{% endif %} float-end">
                                         {% if pred.rf_result == 'ya' %}Ya, terkena risiko gagal jantung{% else %}Tidak, rendah risiko gagal jantung{% endif %}
                                       </span>
-                                      <br />
+                                      <br>
                                       <small>{{ pred.rf_keterangan }}</small>
                                     </li>
                                   </ul>
@@ -261,6 +263,144 @@
           order: [[2, 'desc']],
           columnDefs: [{ orderable: false, targets: [0, 4, 5] }]
         })
+      
+        // Handle print option change
+        $('input[name="printOption"]').change(function () {
+          if ($(this).val() === 'range') {
+            $('#dateRangeInputs').show()
+          } else {
+            $('#dateRangeInputs').hide()
+          }
+        })
+      
+        // Handle export option change
+        $('input[name="exportOption"]').change(function () {
+          if ($(this).val() === 'range') {
+            $('#exportDateRangeInputs').show()
+          } else {
+            $('#exportDateRangeInputs').hide()
+          }
+        })
+      
+        // Handle print button click
+        $('#printButton').click(function () {
+          var printOption = $('input[name="printOption"]:checked').val()
+          var startDate = $('#startDate').val()
+          var endDate = $('#endDate').val()
+      
+          if (printOption === 'range' && (!startDate || !endDate)) {
+            alert('Please select both start and end dates')
+            return
+          }
+      
+          var table = $('#predictionsTable').DataTable()
+          var tableData = []
+      
+          // Get all rows from DataTable
+          table.rows().every(function () {
+            var data = this.data()
+            var rowDate = new Date(data[2])
+      
+            // Extract text from the Risk Level badge
+            var riskLevelText = $(data[3]).text().trim();
+
+            if (printOption === 'all' || (printOption === 'range' && rowDate >= new Date(startDate) && rowDate <= new Date(endDate))) {
+              tableData.push([data[0], data[1], data[2], riskLevelText])
+            }
+          })
+      
+          var printContent = `
+                      <html>
+                      <head>
+                          <title>Predictions Report</title>
+                          <style>
+                              body { font-family: Arial, sans-serif; }
+                              .prediction-page {
+                                  page-break-after: always;
+                                  padding: 20px;
+                                  margin-bottom: 20px;
+                              }
+                              .prediction-page:last-child {
+                                  page-break-after: avoid;
+                              }
+                              .header { text-align: center; margin-bottom: 20px; }
+                              .prediction-info { margin-bottom: 20px; }
+                              .prediction-info p { margin: 5px 0; }
+                              .badge { padding: 5px 10px; border-radius: 4px; }
+                              .bg-danger { background-color: #dc3545; color: white; }
+                              .bg-warning { background-color: #ffc107; color: black; }
+                              .bg-success { background-color: #28a745; color: white; }
+                              .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                              .model-predictions, .input-data { margin-bottom: 20px; }
+                              .list-group-item { border: 1px solid #ddd; padding: 8px; margin-bottom: 5px; }
+                              .page-number { text-align: center; margin-top: 10px; font-size: 12px; color: #666; }
+                              .date-range { text-align: center; margin-bottom: 20px; font-style: italic; }
+                          </style>
+                      </head>
+                      <body>
+                                  <div class="header">
+                              <h2>Predictions Report</h2>
+                              ${
+                                printOption === 'range'
+                                  ? `<div class="date-range">
+                                      <p>Date Range: ${startDate} to ${endDate}</p>
+                                  </div>`
+                                  : ''
+                              }
+                                  </div>
+                          <table>
+                              <thead>
+                                  <tr>
+                                      <th>No</th>
+                                      <th>User</th>
+                                      <th>Date</th>
+                                      <th>Risk Level</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  ${tableData
+                                    .map(
+                                      (row, index) => `
+                                      <tr>
+                                          <td>${index + 1}</td>
+                                          <td>${row[1]}</td>
+                                          <td>${row[2]}</td>
+                                          <td>${row[3]}</td>
+                                      </tr>
+                          `
+                                    )
+                                    .join('')}
+                              </tbody>
+                          </table>
+                      </body>
+                      </html>
+                  `
+      
+          var printWindow = window.open('', '_blank')
+          printWindow.document.write(printContent)
+          printWindow.document.close()
+          printWindow.print()
+        })
+      
+        // Handle export button click
+        $('#exportButton').click(function () {
+          var format = $('#exportFormat').val()
+          var exportOption = $('input[name="exportOption"]:checked').val()
+          var startDate = $('#exportStartDate').val()
+          var endDate = $('#exportEndDate').val()
+      
+          if (exportOption === 'range' && (!startDate || !endDate)) {
+            alert('Please select both start and end dates')
+            return
+          }
+      
+          // Redirect to export route with parameters
+          var url = `/admin/predictions/export/${format}?`
+          if (exportOption === 'range') {
+            url += `start_date=${startDate}&end_date=${endDate}`
+          }
+          window.location.href = url
+        })
       })
     </script>
     <!-- Tambahkan CSS untuk memperbaiki tampilan tombol -->
@@ -278,5 +418,49 @@
         margin: 0;
     }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const printAllRadio = document.getElementById('printAll');
+            const printRangeRadio = document.getElementById('printRange');
+            const dateRangeInputs = document.getElementById('dateRangeInputs');
+            const printButton = document.getElementById('printButton');
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+
+            function toggleDateRangeInputs() {
+                if (printRangeRadio.checked) {
+                    dateRangeInputs.style.display = 'block';
+                } else {
+                    dateRangeInputs.style.display = 'none';
+                }
+            }
+
+            // Initial check
+            toggleDateRangeInputs();
+
+            printAllRadio.addEventListener('change', toggleDateRangeInputs);
+            printRangeRadio.addEventListener('change', toggleDateRangeInputs);
+
+            printButton.addEventListener('click', function() {
+                let url = '';
+                if (printAllRadio.checked) {
+                    url = '/print_all_predictions';
+                } else if (printRangeRadio.checked) {
+                    const startDate = startDateInput.value;
+                    const endDate = endDateInput.value;
+
+                    if (!startDate || !endDate) {
+                        alert('Please select both start and end dates.');
+                        return;
+                    }
+                    url = `/print_predictions_by_date_range?start_date=${startDate}&end_date=${endDate}`;
+                }
+
+                if (url) {
+                    window.open(url, '_blank');
+                }
+            });
+        });
+    </script>
   {% endblock %}
 {% endblock %}

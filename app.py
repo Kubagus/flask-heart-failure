@@ -37,7 +37,7 @@ csrf = CSRFProtect(app)
 def fromjson_filter(value):
     return json.loads(value)
 
-# Load ML modelsFUNGSI PREDIKSI TIDFAK NISA
+# Load ML models
 loadModel(app)
 
 app.register_blueprint(predict_bp)

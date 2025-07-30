@@ -60,10 +60,10 @@ def predict():
         rf_pred = int(rf_model.predict(input_scaled)[0])
         if rf_pred == 1:
             rf_result = 'ya'
-            rf_keterangan = 'Pasien diprediksi terkena risiko gagal jantung.'
+            rf_keterangan = 'Pasien diklasifikasi risiko gagal jantung.'
         else:
             rf_result = 'tidak'
-            rf_keterangan = 'Pasien diprediksi rendah risiko gagal jantung.'
+            rf_keterangan = 'Pasien tidak diklasifikasi risiko gagal jantung.'
         # Simpan ke database jika user login
         if 'user_id' in session:
             save_prediction(
