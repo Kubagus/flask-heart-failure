@@ -1,7 +1,7 @@
 {% extends 'admin/base.html' %}
 
 {% block title %}
-  Predictions - Admin Dashboard
+  classifications - Admin Dashboard
 {% endblock %}
 
 {% block content %}
@@ -10,11 +10,11 @@
       <!-- Main content -->
       <main class="col-12 px-md-4">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-          <h1 class="h2">Predictions</h1>
+          <h1 class="h2">Klasifikasi</h1>
           <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group me-2">
-              <a href="{{ url_for('prediksi') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Buat Klasifikasi</a>
-              {% if predictions %}
+              <a href="{{ url_for('klasifikasi') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Buat Klasifikasi</a>
+              {% if classifications %}
                 <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#printModal"><i class="fas fa-print"></i> Print</button>
                 {# <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportModal"><i class="fas fa-file-export"></i> Export</button> #}
               {% endif %}
@@ -35,28 +35,28 @@
 
         <div class="card shadow mb-4">
           <div class="card-body">
-            {% if predictions %}
+            {% if classifications %}
               <div class="table-responsive">
-                <table class="table table-bordered" id="predictionsTable" width="100%" cellspacing="0">
+                <table class="table table-bordered" id="classificationsTable" width="100%" cellspacing="0">
                   <thead>
                     <tr>
                       <th>No</th>
                       <th>User</th>
                       <th>Date</th>
-                      <th>Risk Level (Random Forest)</th>
+                      <th>Klasifikasi Random Forest</th>
                       <th>Details</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {% for pred in predictions %}
+                    {% for pred in classifications %}
                       <tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ pred.full_name }}</td>
                         <td>{{ pred.created_at }}</td>
                         <td>
                           <span class="badge {% if pred.rf_result == 'ya' %}bg-danger{% else %}bg-success{% endif %}">
-                            {% if pred.rf_result == 'ya' %}Ya, terkena risiko gagal jantung{% else %}Tidak, rendah risiko gagal jantung{% endif %}
+                            {% if pred.rf_result == 'ya' %}Risiko tinggi terkena gagal jantung{% else %}Risiko rendah terkena gagal jantung{% endif %}
                           </span>
                           <br>
                           <small>{{ pred.rf_keterangan }}</small>
@@ -67,9 +67,9 @@
                         <td>
                           <div class="btn-group" role="group">
                               
-                              <form action="{{ url_for('delete_prediction_admin', prediction_id=pred.id) }}" method="POST" class="d-inline">
+                              <form action="{{ url_for('delete_classification_admin', classification_id=pred.id) }}" method="POST" class="d-inline">
                                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                  <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus prediksi ini?')" title="Hapus">
+                                  <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus klasifikasi ini?')" title="Hapus">
                                       <i class="fas fa-trash"></i> Hapus
                                   </button>
                               </form>
@@ -82,13 +82,13 @@
                         <div class="modal-dialog modal-lg">
                           <div class="modal-content">
                             <div class="modal-header">
-                              <h5 class="modal-title" id="detailsModalLabel{{ pred.id }}">Prediction Details</h5>
+                              <h5 class="modal-title" id="detailsModalLabel{{ pred.id }}">Detail Klasifikasi</h5>
                               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                               <div class="row">
                                 <div class="col-md-6">
-                                  <h6>Model Predictions:</h6>
+                                  <h6>Klasifikasi Model:</h6>
                                   <ul class="list-group">
                                     <li class="list-group-item">
                                       <strong>Random Forest:</strong>
@@ -153,8 +153,8 @@
             {% else %}
               <div class="text-center py-4">
                 <i class="fas fa-history fa-3x text-muted mb-3"></i>
-                <h4>No Predictions Found</h4>
-                <p class="text-muted">There are no predictions in the system yet.</p>
+                <h4>Klasifikasi Tidak Ditemukan</h4>
+                <p class="text-muted">Belum ada klasifikasi yang dilakukan.</p>
               </div>
             {% endif %}
           </div>
@@ -168,7 +168,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="printModalLabel">Print Predictions</h5>
+          <h5 class="modal-title" id="printModalLabel">Print Hasil</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -176,7 +176,7 @@
             <div class="mb-3">
               <div class="form-check">
                 <input class="form-check-input" type="radio" name="printOption" id="printAll" value="all" checked />
-                <label class="form-check-label" for="printAll">Print All Predictions</label>
+                <label class="form-check-label" for="printAll">Print Semua Klasifikasi</label>
               </div>
               <div class="form-check">
                 <input class="form-check-input" type="radio" name="printOption" id="printRange" value="range" />
@@ -210,7 +210,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="exportModalLabel">Export Predictions</h5>
+          <h5 class="modal-title" id="exportModalLabel">Export Hasil</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -226,7 +226,7 @@
             <div class="mb-3">
               <div class="form-check">
                 <input class="form-check-input" type="radio" name="exportOption" id="exportAll" value="all" checked />
-                <label class="form-check-label" for="exportAll">Export All Predictions</label>
+                <label class="form-check-label" for="exportAll">Export Semua Hasil</label>
               </div>
               <div class="form-check">
                 <input class="form-check-input" type="radio" name="exportOption" id="exportRange" value="range" />
@@ -259,7 +259,7 @@
     <script>
       $(document).ready(function () {
         // Initialize DataTable
-        $('#predictionsTable').DataTable({
+        $('#classificationsTable').DataTable({
           order: [[2, 'desc']],
           columnDefs: [{ orderable: false, targets: [0, 4, 5] }]
         })
@@ -293,7 +293,7 @@
             return
           }
       
-          var table = $('#predictionsTable').DataTable()
+          var table = $('#classificationsTable').DataTable()
           var tableData = []
       
           // Get all rows from DataTable
@@ -312,26 +312,26 @@
           var printContent = `
                       <html>
                       <head>
-                          <title>Predictions Report</title>
+                          <title>Classification Report</title>
                           <style>
                               body { font-family: Arial, sans-serif; }
-                              .prediction-page {
+                              .classification-page {
                                   page-break-after: always;
                                   padding: 20px;
                                   margin-bottom: 20px;
                               }
-                              .prediction-page:last-child {
+                              .classification-page:last-child {
                                   page-break-after: avoid;
                               }
                               .header { text-align: center; margin-bottom: 20px; }
-                              .prediction-info { margin-bottom: 20px; }
-                              .prediction-info p { margin: 5px 0; }
+                              .classification-info { margin-bottom: 20px; }
+                              .classification-info p { margin: 5px 0; }
                               .badge { padding: 5px 10px; border-radius: 4px; }
                               .bg-danger { background-color: #dc3545; color: white; }
                               .bg-warning { background-color: #ffc107; color: black; }
                               .bg-success { background-color: #28a745; color: white; }
                               .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-                              .model-predictions, .input-data { margin-bottom: 20px; }
+                              .model-classifications, .input-data { margin-bottom: 20px; }
                               .list-group-item { border: 1px solid #ddd; padding: 8px; margin-bottom: 5px; }
                               .page-number { text-align: center; margin-top: 10px; font-size: 12px; color: #666; }
                               .date-range { text-align: center; margin-bottom: 20px; font-style: italic; }
@@ -339,7 +339,7 @@
                       </head>
                       <body>
                                   <div class="header">
-                              <h2>Predictions Report</h2>
+                              <h2>Laporan Klasifikasi</h2>
                               ${
                                 printOption === 'range'
                                   ? `<div class="date-range">
@@ -395,7 +395,7 @@
           }
       
           // Redirect to export route with parameters
-          var url = `/admin/predictions/export/${format}?`
+          var url = `/admin/classifications/export/${format}?`
           if (exportOption === 'range') {
             url += `start_date=${startDate}&end_date=${endDate}`
           }
@@ -444,7 +444,7 @@
             printButton.addEventListener('click', function() {
                 let url = '';
                 if (printAllRadio.checked) {
-                    url = '/print_all_predictions';
+                    url = '/print_all_classifications';
                 } else if (printRangeRadio.checked) {
                     const startDate = startDateInput.value;
                     const endDate = endDateInput.value;
@@ -453,7 +453,7 @@
                         alert('Please select both start and end dates.');
                         return;
                     }
-                    url = `/print_predictions_by_date_range?start_date=${startDate}&end_date=${endDate}`;
+                    url = `/print_classifications_by_date_range?start_date=${startDate}&end_date=${endDate}`;
                 }
 
                 if (url) {

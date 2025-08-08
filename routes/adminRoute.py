@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, session, flash, j
 import pandas as pd
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
-from db.database import get_db_connection, get_user_predictions
+from db.database import get_db_connection, get_user_classifications
 from auth.middleware import login_required, admin_required
 import joblib
 import json
@@ -22,29 +22,29 @@ def adminRoute(app):
         conn = get_db_connection()
         try:
             total_users = conn.execute('SELECT COUNT(*) FROM users WHERE role = ?', ('patient',)).fetchone()[0]
-            total_predictions = conn.execute('SELECT COUNT(*) FROM predictions').fetchone()[0]
-            high_risk_predictions = conn.execute('''
+            total_classifications = conn.execute('SELECT COUNT(*) FROM classifications').fetchone()[0]
+            high_risk_classifications = conn.execute('''
                 SELECT COUNT(*) FROM rf_results 
                 WHERE rf_result = 'ya'
             ''').fetchone()[0]
             today_str = datetime.now().strftime('%Y-%m-%d')
-            today_predictions = conn.execute('''
-                SELECT COUNT(*) FROM predictions 
+            today_classifications = conn.execute('''
+                SELECT COUNT(*) FROM classifications 
                 WHERE DATE(created_at) = DATE(?)
             ''', (today_str,)).fetchone()[0]
-            recent_predictions = conn.execute(
+            recent_classifications = conn.execute(
                 """SELECT p.*, u.username, u.full_name, r.rf_result, r.rf_keterangan, r.created_at as rf_created_at \
-                FROM predictions p \
+                FROM classifications p \
                 JOIN users u ON p.user_id = u.id \
-                JOIN rf_results r ON p.id = r.prediction_id \
+                JOIN rf_results r ON p.id = r.classification_id \
                 ORDER BY p.created_at DESC LIMIT 5"""
             ).fetchall()
             return render_template('admin/dashboard.html',
                                 total_users=total_users,
-                                total_predictions=total_predictions,
-                                high_risk_predictions=high_risk_predictions,
-                                today_predictions=today_predictions,
-                                recent_predictions=recent_predictions)
+                                total_classifications=total_classifications,
+                                high_risk_classifications=high_risk_classifications,
+                                today_classifications=today_classifications,
+                                recent_classifications=recent_classifications)
         finally:
             conn.close()
 
@@ -129,19 +129,19 @@ def adminRoute(app):
             conn.close()
         return redirect(url_for('admin_users'))
 
-    @app.route('/admin/predictions')
+    @app.route('/admin/classifications')
     @admin_required
-    def admin_predictions():
-        predictions = get_user_predictions()
-        return render_template('admin/predictions.html', predictions=predictions)
+    def admin_classifications():
+        classifications = get_user_classifications()
+        return render_template('admin/classifications.html', classifications=classifications)
 
-    @app.route('/admin/predictions/export/<format>')
+    @app.route('/admin/classifications/export/<format>')
     @admin_required
-    def export_predictions(format):
-        predictions = get_user_predictions()
+    def export_classifications(format):
+        classifications = get_user_classifications()
         data = []
         # Hanya ambil data input
-        for pred in predictions:
+        for pred in classifications:
             pred_data = dict(pred)
             row = {
                 'age': pred_data.get('age', ''),
@@ -163,7 +163,7 @@ def adminRoute(app):
             csv_data = df.to_csv(index=False)
             return csv_data, 200, {
                 'Content-Type': 'text/csv',
-                'Content-Disposition': 'attachment; filename=predictions_input.csv'
+                'Content-Disposition': 'attachment; filename=classifications_input.csv'
             }
         elif format == 'json':
             return jsonify(data)
@@ -175,13 +175,13 @@ def adminRoute(app):
             elements = []
 
             # Add title
-            title = Paragraph("Prediction History Report", styles['Title'])
+            title = Paragraph("classification History Report", styles['Title'])
             elements.append(title)
             elements.append(Spacer(1, 20))
 
             # Create table data
             table_data = [['User', 'Date', 'Input Data', 'Result']]
-            for pred in predictions:
+            for pred in classifications:
                 pred_dict = dict(pred)
 
                 # Format input data directly from pred_dict
@@ -241,49 +241,49 @@ def adminRoute(app):
             return send_file(
                 buffer,
                 as_attachment=True,
-                download_name='predictions.pdf',
+                download_name='classifications.pdf',
                 mimetype='application/pdf'
             )
 
-    @app.route('/admin/predictions/delete/<int:prediction_id>', methods=['POST'])
+    @app.route('/admin/classifications/delete/<int:classification_id>', methods=['POST'])
     @admin_required
-    def delete_prediction_admin(prediction_id):
+    def delete_classification_admin(classification_id):
         conn = get_db_connection()
         try:
-            prediction = conn.execute('SELECT * FROM predictions WHERE id = ?', (prediction_id,)).fetchone()
-            if not prediction:
-                flash('Prediksi tidak ditemukan', 'danger')
-                return redirect(url_for('admin_predictions'))
-            conn.execute('DELETE FROM rf_results WHERE prediction_id = ?', (prediction_id,))
-            conn.execute('DELETE FROM predictions WHERE id = ?', (prediction_id,))
+            classification = conn.execute('SELECT * FROM classifications WHERE id = ?', (classification_id,)).fetchone()
+            if not classification:
+                flash('klasifikasi tidak ditemukan', 'danger')
+                return redirect(url_for('admin_classifications'))
+            conn.execute('DELETE FROM rf_results WHERE classification_id = ?', (classification_id,))
+            conn.execute('DELETE FROM classifications WHERE id = ?', (classification_id,))
             conn.commit()
-            flash('Prediksi berhasil dihapus', 'success')
+            flash('klasifikasi berhasil dihapus', 'success')
         except Exception as e:
-            flash(f'Gagal menghapus prediksi: {str(e)}', 'danger')
+            flash(f'Gagal menghapus klasifikasi: {str(e)}', 'danger')
         finally:
             conn.close()
-        return redirect(url_for('admin_predictions'))
+        return redirect(url_for('admin_classifications'))
 
-    @app.route('/print_all_predictions')
+    @app.route('/print_all_classifications')
     @admin_required
-    def print_all_predictions():
-        predictions = get_user_predictions()
-        return generate_predictions_pdf(predictions, "All Predictions Report")
+    def print_all_classifications():
+        classifications = get_user_classifications()
+        return generate_classifications_pdf(classifications, "All classifications Report")
 
-    @app.route('/print_predictions_by_date_range')
+    @app.route('/print_classifications_by_date_range')
     @admin_required
-    def print_predictions_by_date_range():
+    def print_classifications_by_date_range():
         start_date_str = request.args.get('start_date')
         end_date_str = request.args.get('end_date')
 
         if not start_date_str or not end_date_str:
             flash('Start date and end date are required for printing by range.', 'danger')
-            return redirect(url_for('admin_predictions'))
+            return redirect(url_for('admin_classifications'))
 
-        predictions = get_user_predictions(start_date=start_date_str, end_date=end_date_str)
-        return generate_predictions_pdf(predictions, f"Predictions Report from {start_date_str} to {end_date_str}")
+        classifications = get_user_classifications(start_date=start_date_str, end_date=end_date_str)
+        return generate_classifications_pdf(classifications, f"classifications Report from {start_date_str} to {end_date_str}")
 
-def generate_predictions_pdf(predictions, title_text):
+def generate_classifications_pdf(classifications, title_text):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
@@ -296,7 +296,7 @@ def generate_predictions_pdf(predictions, title_text):
 
     # Create table data
     table_data = [['User', 'Date', 'Input Data', 'Result']]
-    for pred in predictions:
+    for pred in classifications:
         pred_dict = dict(pred)
 
         # Format input data directly from pred_dict
@@ -357,6 +357,6 @@ def generate_predictions_pdf(predictions, title_text):
     return send_file(
         buffer,
         as_attachment=True,
-        download_name='predictions.pdf',
+        download_name='classifications.pdf',
         mimetype='application/pdf'
     )

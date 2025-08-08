@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, session, flash, s
 import os
 import pandas as pd
 from werkzeug.security import generate_password_hash, check_password_hash
-from db.database import get_db_connection, get_user_predictions
+from db.database import get_db_connection, get_user_classifications
 from auth.middleware import login_required, admin_required
 import joblib
 import json
@@ -21,27 +21,27 @@ def main(app):
         return render_template('index.html', 
                             data=data)
 
-    @app.route('/prediksi')
+    @app.route('/klasifikasi')
     @login_required
-    def prediksi():
-        return render_template('prediksi.html')
+    def klasifikasi():
+        return render_template('klasifikasi.html')
 
     @app.route('/history')
     @login_required
     def history():
         conn = get_db_connection()
         user = conn.execute('SELECT full_name FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-        predictions = conn.execute(
+        classifications = conn.execute(
             """SELECT p.*, r.rf_result, r.rf_keterangan, r.created_at as rf_created_at \
-            FROM predictions p \
-            JOIN rf_results r ON p.id = r.prediction_id \
+            FROM classifications p \
+            JOIN rf_results r ON p.id = r.classification_id \
             WHERE p.user_id = ? \
             ORDER BY p.created_at DESC""",
             (session['user_id'],)
         ).fetchall()
         conn.close()
-        processed_predictions = []
-        for pred in predictions:
+        processed_classifications = []
+        for pred in classifications:
             processed_pred = {
                 'id': pred['id'],
                 'created_at': pred['created_at'],
@@ -59,24 +59,24 @@ def main(app):
                 'rf_result': pred['rf_result'],
                 'rf_keterangan': pred['rf_keterangan']
             }
-            processed_predictions.append(processed_pred)
-        return render_template('history.html', predictions=processed_predictions, user_full_name=user['full_name'])
+            processed_classifications.append(processed_pred)
+        return render_template('history.html', classifications=processed_classifications, user_full_name=user['full_name'])
 
     @app.route('/print_user_history')
     def print_user_history():
         user_id = session.get('user_id')
-        predictions = get_user_predictions(user_id=user_id)
-        return generate_user_history_pdf(predictions, "Prediction History")
+        classifications = get_user_classifications(user_id=user_id)
+        return generate_user_history_pdf(classifications, "classification History")
 
     @app.route('/print_user_history_by_date_range')
     def print_user_history_by_date_range():
         user_id = session.get('user_id')
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
-        predictions = get_user_predictions(user_id=user_id, start_date=start_date, end_date=end_date)
-        return generate_user_history_pdf(predictions, f"Prediction History {start_date} to {end_date}")
+        classifications = get_user_classifications(user_id=user_id, start_date=start_date, end_date=end_date)
+        return generate_user_history_pdf(classifications, f"classification History {start_date} to {end_date}")
 
-def generate_user_history_pdf(predictions, title_text):
+def generate_user_history_pdf(classifications, title_text):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
@@ -85,7 +85,7 @@ def generate_user_history_pdf(predictions, title_text):
     elements.append(title)
     elements.append(Spacer(1, 20))
     table_data = [['Date', 'Hasil', 'Keterangan']]
-    for pred in predictions:
+    for pred in classifications:
         hasil = pred['rf_result'] if 'rf_result' in pred.keys() else '-'
         ket = pred['rf_keterangan'] if 'rf_keterangan' in pred.keys() else '-'
         table_data.append([
@@ -110,4 +110,4 @@ def generate_user_history_pdf(predictions, title_text):
     elements.append(table)
     doc.build(elements)
     buffer.seek(0)
-    return send_file(buffer, as_attachment=True, download_name='prediction_history.pdf', mimetype='application/pdf')
+    return send_file(buffer, as_attachment=True, download_name='classification_history.pdf', mimetype='application/pdf')

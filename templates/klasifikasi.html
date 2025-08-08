@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heart Failure Prediction</title>
+  <title>Heart Failure classification</title>
 </head>
 <body>
 {% extends "admin/base.html" %}
@@ -28,7 +28,7 @@
     <div class="col-md-8">
       <div class="card p-4">
         <h4 class="mb-3">Input Data</h4>
-        <form id="predictionForm">
+        <form id="classificationForm">
           <div class="row">
             <div class="col-md-6">
               <div class="mb-3"><label class="form-label">Usia</label><input type="number" class="form-control" id="age" required /></div>
@@ -46,18 +46,18 @@
               <div class="mb-3"><label class="form-label">ST Slope</label><select class="form-select" id="stslope"><option value="Up">Up</option><option value="Flat">Flat</option><option value="Down">Down</option></select></div>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary w-100 mt-3">Prediksi</button>
+          <button type="submit" class="btn btn-primary w-100 mt-3">Buat Klasifikasi</button>
         </form>
       </div>
     </div>
-    <!-- Hasil Prediksi -->
+    <!-- Hasil klasifikasi -->
     <div class="col-md-4">
       <div class="card p-4">
-        <h4 class="mb-3">Hasil Prediksi</h4>
+        <h4 class="mb-3">Hasil Klasifikasi</h4>
         <div id="results">
           <div class="result-item mb-4" id="rf-result">
             <h6>Random Forest</h6>
-            <div id="rf-prediction" class="fs-4 fw-bold text-center text-secondary">Belum ada prediksi</div>
+            <div id="rf-classification" class="fs-4 fw-bold text-center text-secondary">Belum ada Klasifikasi</div>
             <div id="rf-keterangan" class="mt-2 text-center text-muted"></div>
           </div>
         </div>
@@ -66,11 +66,11 @@
   </div>
 </div>
 <!-- Konfirmasi Modal -->
-<div class="modal fade" id="confirmPredictionModal" tabindex="-1" aria-labelledby="confirmPredictionModalLabel" aria-hidden="true">
+<div class="modal fade" id="confirmclassificationModal" tabindex="-1" aria-labelledby="confirmclassificationModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="confirmPredictionModalLabel">Konfirmasi Data Prediksi</h5>
+        <h5 class="modal-title" id="confirmclassificationModalLabel">Konfirmasi Data</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -79,13 +79,13 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <button type="button" class="btn btn-primary" id="confirmPredictButton">Konfirmasi Prediksi</button>
+        <button type="button" class="btn btn-primary" id="confirmPredictButton">Konfirmasi</button>
       </div>
     </div>
   </div>
 </div>
 <script>
-  document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+  document.getElementById('classificationForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = {
       age: document.getElementById('age').value,
@@ -150,14 +150,14 @@
         listItem.innerHTML = `<strong>${displayLabels[key] || key}:</strong> ${displayValue}`;
         confirmationDataList.appendChild(listItem);
       }
-      const confirmModal = new bootstrap.Modal(document.getElementById('confirmPredictionModal'));
+      const confirmModal = new bootstrap.Modal(document.getElementById('confirmclassificationModal'));
       confirmModal.show();
       document.getElementById('confirmPredictButton').onclick = async () => {
         confirmModal.hide();
-        await sendPredictionRequest(data);
+        await sendclassificationRequest(data);
       };
     }
-    async function sendPredictionRequest(data) {
+    async function sendclassificationRequest(data) {
       try {
         const response = await fetch('/predict', {
           method: 'POST',
@@ -169,25 +169,25 @@
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'An error occurred during prediction');
+          throw new Error(errorData.error || 'An error occurred during classification');
         }
         const resultData = await response.json();
-        const rfPrediction = document.getElementById('rf-prediction');
+        const rfclassification = document.getElementById('rf-classification');
         const rfKeterangan = document.getElementById('rf-keterangan');
         if (resultData.random_forest === 'ya') {
-          rfPrediction.textContent = 'Ya, terkena risiko gagal jantung';
-          rfPrediction.className = 'fs-4 fw-bold text-center text-danger';
+          rfclassification.textContent = 'Ya, terkena risiko gagal jantung';
+          rfclassification.className = 'fs-4 fw-bold text-center text-danger';
         } else if (resultData.random_forest === 'tidak') {
-          rfPrediction.textContent = 'Tidak, rendah risiko gagal jantung';
-          rfPrediction.className = 'fs-4 fw-bold text-center text-success';
+          rfclassification.textContent = 'Tidak, rendah risiko gagal jantung';
+          rfclassification.className = 'fs-4 fw-bold text-center text-success';
         } else {
-          rfPrediction.textContent = 'Belum ada prediksi';
-          rfPrediction.className = 'fs-4 fw-bold text-center text-secondary';
+          rfclassification.textContent = 'Belum ada klasifikasi';
+          rfclassification.className = 'fs-4 fw-bold text-center text-secondary';
         }
         rfKeterangan.textContent = resultData.keterangan || '';
       } catch (error) {
         console.error('Error:', error);
-        alert('Terjadi kesalahan selama prediksi.');
+        alert('Terjadi kesalahan selama klasifikasi.');
       }
     }
   });

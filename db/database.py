@@ -20,7 +20,7 @@ def init_db():
     ''')
 
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS predictions (
+        CREATE TABLE IF NOT EXISTS classifications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             age INTEGER NOT NULL,
@@ -42,11 +42,11 @@ def init_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS rf_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            prediction_id INTEGER NOT NULL,
+            classification_id INTEGER NOT NULL,
             rf_result TEXT NOT NULL,
             rf_keterangan TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (prediction_id) REFERENCES predictions (id)
+            FOREIGN KEY (classification_id) REFERENCES classifications (id)
         )
     ''')
 
@@ -66,39 +66,39 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-def save_prediction(user_id, prediction_data, rf_result, rf_keterangan):
+def save_classification(user_id, classification_data, rf_result, rf_keterangan):
     conn = get_db_connection()
     try:
-        # Insert into predictions table
+        # Insert into classifications table
         cursor = conn.execute(
-            """INSERT INTO predictions (
+            """INSERT INTO classifications (
                 user_id, age, sex, chestpaintype, restingbp, cholesterol,
                 fastingbs, restingecg, maxhr, exerciseangina, oldpeak, stslope
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 user_id,
-                prediction_data['age'],
-                prediction_data['sex'],
-                prediction_data['chestpaintype'],
-                prediction_data['restingbp'],
-                prediction_data['cholesterol'],
-                prediction_data['fastingbs'],
-                prediction_data['restingecg'],
-                prediction_data['maxhr'],
-                prediction_data['exerciseangina'],
-                prediction_data['oldpeak'],
-                prediction_data['stslope']
+                classification_data['age'],
+                classification_data['sex'],
+                classification_data['chestpaintype'],
+                classification_data['restingbp'],
+                classification_data['cholesterol'],
+                classification_data['fastingbs'],
+                classification_data['restingecg'],
+                classification_data['maxhr'],
+                classification_data['exerciseangina'],
+                classification_data['oldpeak'],
+                classification_data['stslope']
             )
         )
-        prediction_id = cursor.lastrowid
+        classification_id = cursor.lastrowid
 
         # Insert into rf_results table
         conn.execute(
             """INSERT INTO rf_results (
-                prediction_id, rf_result, rf_keterangan
+                classification_id, rf_result, rf_keterangan
             ) VALUES (?, ?, ?)""",
             (
-                prediction_id,
+                classification_id,
                 rf_result,
                 rf_keterangan
             )
@@ -106,18 +106,18 @@ def save_prediction(user_id, prediction_data, rf_result, rf_keterangan):
         conn.commit()
         return True
     except Exception as e:
-        print(f"Error saving prediction: {e}")
+        print(f"Error saving classification: {e}")
         return False
     finally:
         conn.close()
 
-def get_user_predictions(user_id=None, start_date=None, end_date=None):
+def get_user_classifications(user_id=None, start_date=None, end_date=None):
     conn = get_db_connection()
     try:
         query = """SELECT p.*, u.username, u.full_name, r.rf_result, r.rf_keterangan, r.created_at as rf_created_at \
-                FROM predictions p \
+                FROM classifications p \
                 JOIN users u ON p.user_id = u.id \
-                JOIN rf_results r ON p.id = r.prediction_id \
+                JOIN rf_results r ON p.id = r.classification_id \
                 """
         params = []
         conditions = []
@@ -133,15 +133,15 @@ def get_user_predictions(user_id=None, start_date=None, end_date=None):
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
         query += " ORDER BY p.created_at DESC"
-        predictions = conn.execute(query, tuple(params)).fetchall()
-        return predictions
+        classifications = conn.execute(query, tuple(params)).fetchall()
+        return classifications
     finally:
         conn.close()
 
 def delete_rf_result(id):
     conn = get_db_connection()
     try:
-        conn.execute('DELETE FROM rf_results WHERE prediction_id = ?', (id,))
+        conn.execute('DELETE FROM rf_results WHERE classification_id = ?', (id,))
         conn.commit()
         return True
     except Exception as e:

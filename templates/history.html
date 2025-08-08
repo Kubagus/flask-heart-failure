@@ -13,8 +13,8 @@
         <!-- Main content -->
         <main class="col-12 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Prediction History</h1>
-                {% if predictions %}
+                <h1 class="h2">Classification History</h1>
+                {% if classifications %}
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#printModal">
                         <i class="fas fa-print"></i> Print History
@@ -36,7 +36,7 @@
 
             <div class="card shadow mb-4">
                 <div class="card-body">
-                    {% if predictions %}
+                    {% if classifications %}
                         <div class="table-responsive">
                             <table class="table table-bordered" id="historyTable" width="100%" cellspacing="0">
                                 <thead>
@@ -49,15 +49,15 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for pred in predictions %}
+                                    {% for pred in classifications %}
                                     <tr>
                                         <td>{{ loop.index }}</td>
                                         <td>{{ pred.created_at }}</td>
                                         <td>
                                             {% if pred.rf_result == 'ya' %}
-                                                <span class="badge bg-danger">Ya, terkena risiko gagal jantung</span>
+                                                <span class="badge bg-danger">Risiko tinggi terkena gagal jantung</span>
                                             {% else %}
-                                                <span class="badge bg-success">Tidak, rendah risiko gagal jantung</span>
+                                                <span class="badge bg-success">Risiko rendah terkena gagal jantung</span>
                                             {% endif %}
                                         </td>
                                         <td>{{ pred.rf_keterangan }}</td>
@@ -73,7 +73,7 @@
                                         <div class="modal-dialog modal-lg">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h5 class="modal-title" id="detailsModalLabel{{ pred.id }}">Prediction Details</h5>
+                                                    <h5 class="modal-title" id="detailsModalLabel{{ pred.id }}">Classification Details</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
@@ -84,9 +84,9 @@
                                                                 <li class="list-group-item">
                                                                     <strong>Hasil:</strong>
                                                                     {% if pred.rf_result == 'ya' %}
-                                                                        <span class="badge bg-danger">Ya, terkena risiko gagal jantung</span>
+                                                                        <span class="badge bg-danger">Kemungkinan tinggi terkena gagal jantung</span>
                                                                     {% else %}
-                                                                        <span class="badge bg-success">Tidak, rendah risiko gagal jantung</span>
+                                                                        <span class="badge bg-success">Kemungkinan rendah terkena gagal jantung</span>
                                                                     {% endif %}
                                                                     <br>
                                                                     <small>{{ pred.rf_keterangan }}</small>
@@ -135,7 +135,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="printModalLabel">Print Prediction History</h5>
+                <h5 class="modal-title" id="printModalLabel">Print Riwayat Klasifikasi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -143,7 +143,7 @@
                     <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="printOption" id="printAll" value="all" checked />
-                            <label class="form-check-label" for="printAll">Print All History</label>
+                            <label class="form-check-label" for="printAll">Print Semua Riwayat</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="printOption" id="printRange" value="range" />
@@ -179,9 +179,9 @@
 <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
-// Store prediction data globally
-var predictionData = {
-    {% for pred in predictions %}
+// Store classification data globally
+var classificationData = {
+    {% for pred in classifications %}
     {{ pred.id }}: {
         age: '{{ pred.age }}',
         sex: '{{ pred.sex }}',
@@ -227,7 +227,7 @@ $(document).ready(function () {
 
         var table = $('#historyTable').DataTable();
         var tableData = [];
-        var selectedPredictions = [];
+        var selectedclassifications = [];
 
         // Get all rows from DataTable
         table.rows().every(function () {
@@ -241,27 +241,27 @@ $(document).ready(function () {
             ) {
                 tableData.push([data[0], data[1], riskLevelText]);
                 
-                // Get prediction ID from the row (we'll use the row index to find the prediction)
+                // Get classification ID from the row (we'll use the row index to find the classification)
                 var rowIndex = this.index();
-                var predictionId = {{ predictions|map(attribute='id')|list|tojson }};
-                if (predictionId[rowIndex]) {
-                    selectedPredictions.push({
-                        id: predictionId[rowIndex],
+                var classificationId = {{ classifications|map(attribute='id')|list|tojson }};
+                if (classificationId[rowIndex]) {
+                    selectedclassifications.push({
+                        id: classificationId[rowIndex],
                         date: data[1],
-                        data: predictionData[predictionId[rowIndex]]
+                        data: classificationData[classificationId[rowIndex]]
                     });
                 }
             }
         });
 
         var inputDataSection = '';
-        if (selectedPredictions.length > 0) {
+        if (selectedclassifications.length > 0) {
             inputDataSection = `
                 <div class="input-data">
                     <h3>Detailed Input Data</h3>
-                    ${selectedPredictions.map((pred, index) => `
+                    ${selectedclassifications.map((pred, index) => `
                         <div style="margin-bottom: 30px; border: 2px solid #ddd; padding: 15px;">
-                            <h4>Prediction #${index + 1} - ${pred.date}</h4>
+                            <h4>Classification #${index + 1} - ${pred.date}</h4>
                             <div class="input-grid">
                                 <div class="input-item">
                                     <div class="input-label">Age:</div>
@@ -317,7 +317,7 @@ $(document).ready(function () {
         var printContent = `
             <html>
             <head>
-                <title>Prediction History Report</title>
+                <title>Classification History Report</title>
                 <style>
                     body { font-family: Arial, sans-serif; }
                     .header { text-align: center; margin-bottom: 20px; }
@@ -339,7 +339,7 @@ $(document).ready(function () {
             </head>
             <body>
                 <div class="header">
-                    <h2>Prediction History Report</h2>
+                    <h2>Classification History Report</h2>
                     <h4>Patient: {{ user_full_name }}</h4>
                     ${printOption === 'range' ? `<div class="date-range"><p>Date Range: ${startDate} to ${endDate}</p></div>` : ''}
                 </div>

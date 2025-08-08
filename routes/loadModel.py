@@ -25,7 +25,7 @@ def loadModel(app):
         test_data_scaled = scaler.transform(test_data)
         rf_pred = rf_model.predict_proba(test_data_scaled)
         if not isinstance(rf_pred, np.ndarray):
-            raise ValueError("Random Forest model failed to make predictions")
+            raise ValueError("Random Forest model failed to make classifications")
         # Store models in app config
         app.config['RF_MODEL'] = rf_model
         app.config['SCALER'] = scaler

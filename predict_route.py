@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app, session
 import pandas as pd
 import traceback
-from db.database import save_prediction
+from db.database import save_classification
 import logging
 
 predict_bp = Blueprint('predict_bp', __name__)
@@ -66,9 +66,9 @@ def predict():
             rf_keterangan = 'Pasien tidak diklasifikasi risiko gagal jantung.'
         # Simpan ke database jika user login
         if 'user_id' in session:
-            save_prediction(
+            save_classification(
                 user_id=session['user_id'],
-                prediction_data=data,
+                classification_data=data,
                 rf_result=rf_result,
                 rf_keterangan=rf_keterangan
             )
@@ -77,6 +77,6 @@ def predict():
             'keterangan': rf_keterangan
         })
     except Exception as e:
-        logging.error(f"An error occurred during prediction: {str(e)}")
+        logging.error(f"An error occurred during classification: {str(e)}")
         logging.error(traceback.format_exc())
-        return jsonify({'error': f"An error occurred during prediction: {str(e)}"}), 500
+        return jsonify({'error': f"An error occurred during classification: {str(e)}"}), 500

@@ -36,8 +36,8 @@
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        Total Predictions</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_predictions }}</div>
+                                        Total Klasifikasi</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_classifications }}</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-chart-line fa-2x text-gray-300"></i>
@@ -52,9 +52,9 @@
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                        High Risk Predictions</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ high_risk_predictions }}</div>
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                        Klasifikasi Terkena Ggal Jantung</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ high_risk_classifications }}</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
@@ -70,8 +70,8 @@
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        Today's Predictions</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ today_predictions }}</div>
+                                        Total Klasifikasi Hari Ini</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ today_classifications }}</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
@@ -82,10 +82,10 @@
                 </div>
             </div>
 
-            <!-- Recent Predictions -->
+            <!-- Recent classifications -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Predictions</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Recent classifications</h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -99,7 +99,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for pred in recent_predictions %}
+                                {% for pred in recent_classifications %}
                                 <tr>
                                     <td>{{ pred.full_name }}</td>
                                     <td>{{ pred.created_at }}</td>
@@ -126,7 +126,7 @@
 </div>
 
 <!-- Modals -->
-{% for pred in recent_predictions %}
+{% for pred in recent_classifications %}
 <!-- Input Data Modal -->
 <div class="modal fade" id="dataModal{{ pred.id }}" tabindex="-1" aria-labelledby="dataModalLabel{{ pred.id }}" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -196,7 +196,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="resultModalLabel{{ pred.id }}">Prediction Results</h5>
+                <h5 class="modal-title" id="resultModalLabel{{ pred.id }}">classification Results</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

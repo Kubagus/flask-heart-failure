@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+<!-- {% extends "base.html" %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Daftar Klasifikasi</h2>
-        <a href="{{ url_for('predict.predict') }}" class="btn btn-primary">
+        <a href="{{ url_for('classification.classification') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Buat Klasifikasi Baru
         </a>
     </div>
@@ -31,33 +31,33 @@
                 </tr>
             </thead>
             <tbody>
-                {% for prediction in predictions %}
+                {% for classification in classifications %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ prediction['created_at'] }}</td>
-                    <td>{{ prediction['age'] }}</td>
-                    <td>{{ 'Laki-laki' if prediction['sex'] == 'M' else 'Perempuan' }}</td>
+                    <td>{{ classification['created_at'] }}</td>
+                    <td>{{ classification['age'] }}</td>
+                    <td>{{ 'Laki-laki' if classification['sex'] == 'M' else 'Perempuan' }}</td>
                     <td>
-                        {% if prediction['decision_tree_risk'] == 'High' or prediction['random_forest_risk'] == 'High' or prediction['xgboost_risk'] == 'High' %}
+                        {% if classification['decision_tree_risk'] == 'High' or classification['random_forest_risk'] == 'High' or classification['xgboost_risk'] == 'High' %}
                             <span class="badge bg-danger">Risiko Tinggi</span>
                         {% else %}
                             <span class="badge bg-success">Risiko Rendah</span>
                         {% endif %}
                     </td>
                     <td>
-                        DT: {{ "%.2f"|format(prediction['decision_tree'] * 100) }}%<br>
-                        RF: {{ "%.2f"|format(prediction['random_forest'] * 100) }}%<br>
-                        XGB: {{ "%.2f"|format(prediction['xgboost'] * 100) }}%
+                        DT: {{ "%.2f"|format(classification['decision_tree'] * 100) }}%<br>
+                        RF: {{ "%.2f"|format(classification['random_forest'] * 100) }}%<br>
+                        XGB: {{ "%.2f"|format(classification['xgboost'] * 100) }}%
                     </td>
                     <td>
                         <div class="btn-group" role="group">
-                            <a href="{{ url_for('prediction.view_prediction', id=prediction['id']) }}" class="btn btn-info btn-sm" title="Lihat Detail">
+                            <a href="{{ url_for('classification.view_classification', id=classification['id']) }}" class="btn btn-info btn-sm" title="Lihat Detail">
                                 <i class="fas fa-eye"></i> Detail
                             </a>
-                            <a href="{{ url_for('prediction.edit_prediction', id=prediction['id']) }}" class="btn btn-warning btn-sm" title="Edit">
+                            <a href="{{ url_for('classification.edit_classification', id=classification['id']) }}" class="btn btn-warning btn-sm" title="Edit">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <form action="{{ url_for('prediction.delete_prediction', id=prediction['id']) }}" method="POST" class="d-inline">
+                            <form action="{{ url_for('classification.delete_classification', id=classification['id']) }}" method="POST" class="d-inline">
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus ini?')" title="Hapus">
                                     <i class="fas fa-trash"></i> Hapus
                                 </button>
@@ -89,4 +89,4 @@
     margin: 0;
 }
 </style>
-{% endblock %} 
+{% endblock %}  -->

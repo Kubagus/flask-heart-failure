@@ -12,7 +12,7 @@ from flask_wtf.csrf import CSRFProtect
 from routes.main import main
 from routes.authRoutes import authRoutes
 from routes.adminRoute import adminRoute
-from routes.prediction_routes import prediction_bp
+from routes.classification_routes import classification_bp
 from db.database import init_db, get_db_connection
 from auth.middleware import login_required, admin_required
 from routes.loadModel import loadModel
@@ -27,9 +27,9 @@ logging.basicConfig(
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "RAHASIA"  # Ganti dengan secret key yang aman
+app.config['SECRET_KEY'] = "1qazwszx" 
 app.config['WTF_CSRF_ENABLED'] = True
-app.config['WTF_CSRF_SECRET_KEY'] = "RAHASIA"  # Ganti dengan secret key yang aman
+app.config['WTF_CSRF_SECRET_KEY'] = "1qazwszx" 
 csrf = CSRFProtect(app)
 
 # Add fromjson filter
@@ -41,7 +41,7 @@ def fromjson_filter(value):
 loadModel(app)
 
 app.register_blueprint(predict_bp)
-app.register_blueprint(prediction_bp)
+app.register_blueprint(classification_bp)
 
 # Initialize routes
 main(app)

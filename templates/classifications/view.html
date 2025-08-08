@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Detail klasifikasi</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Hasil Klasifikasi</h5>
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6>Random Forest</h6>
+                            <p class="mb-0">
+                                <span class="badge {% if classification['rf_result'] == 'ya' %}bg-danger{% else %}bg-success{% endif %}">
+                                    {% if classification['rf_result'] == 'ya' %}Hasil klasifikasi: Risiko tinggi gagal jantung{% else %}Hasil klasifikasi: Rendah risiko gagal jantung{% endif %}
+                                </span>
+                                <br>
+                                <small>{{ classification['rf_keterangan'] }}</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="card-title">Data Pasien</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Tanggal klasifikasi:</strong> {{ classification['created_at'] }}</p>
+                    <p><strong>Usia:</strong> {{ classification['age'] }}</p>
+                    <p><strong>Jenis Kelamin:</strong> {{ 'Laki-laki' if classification['sex'] == 'M' else 'Perempuan' }}</p>
+                    <p><strong>Tipe Nyeri Dada:</strong> {{ classification['chestpaintype'] }}</p>
+                    <p><strong>Tekanan Darah Istirahat:</strong> {{ classification['restingbp'] }}</p>
+                    <p><strong>Kolesterol:</strong> {{ classification['cholesterol'] }}</p>
+                    <p><strong>Gula Darah Puasa:</strong> {{ classification['fastingbs'] }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>ECG Istirahat:</strong> {{ classification['restingecg'] }}</p>
+                    <p><strong>Detak Jantung Maksimum:</strong> {{ classification['maxhr'] }}</p>
+                    <p><strong>Angina Saat Olahraga:</strong> {{ 'Ya' if classification['exerciseangina'] == 'Y' else 'Tidak' }}</p>
+                    <p><strong>Oldpeak:</strong> {{ classification['oldpeak'] }}</p>
+                    <p><strong>ST Slope:</strong> {{ classification['stslope'] }}</p>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="{{ url_for('classification.edit_classification', id=classification['id']) }}" class="btn btn-warning">Edit</a>
+                <a href="{{ url_for('classification.list_classifications') }}" class="btn btn-secondary">Kembali ke Daftar</a>
+                <form action="{{ url_for('classification.delete_classification', id=classification['id']) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus hasil ini?')">Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
