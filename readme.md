@@ -2,7 +2,7 @@
 
 ## Buat virtual environment
 ```
-python -m venv .venv
+python -m venv venv
 ```
 ## Aktifkan virtual environment
 ```
